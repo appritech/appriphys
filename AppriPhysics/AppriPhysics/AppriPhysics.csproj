@@ -43,12 +43,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Solving\FlowCalculationData.cs" />
+    <Compile Include="Components\FlowComponent.cs" />
+    <Compile Include="Components\FlowLine.cs" />
+    <Compile Include="Solving\FlowResponseData.cs" />
+    <Compile Include="Components\Junction.cs" />
+    <Compile Include="Components\Pump.cs" />
+    <Compile Include="Components\Tank.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solving\GraphSolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
