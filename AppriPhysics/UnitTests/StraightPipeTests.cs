@@ -8,92 +8,13 @@ namespace UnitTests
     [TestClass]
     public class StraightPipeTests
     {
-        [TestMethod]
-        public void AllOpen()
-        {
-            GraphSolver gs = createGraph();
-            //TODO: Dynamically set valve positions, etc.
-            gs.solveMimic();
-            double solutionFlow = 100.0;          //Single flow through whole system
-            verifyFlow(gs, "T1", -solutionFlow);
-            verifyFlow(gs, "V1", -solutionFlow);
-            verifyFlow(gs, "P1", solutionFlow);
-            verifyFlow(gs, "V2", solutionFlow);
-            verifyFlow(gs, "T2", solutionFlow);
-        }
 
-        [TestMethod]
-        public void V2HalfClosed()
-        {
-            GraphSolver gs = createGraph();
-            //TODO: Dynamically set valve positions, etc.
-            FlowLine v2 = (FlowLine)gs.getComponent("V2");
-            v2.setFlowAllowedPercent(0.5);
-            gs.solveMimic();
-            double solutionFlow = 50.0;          //Single flow through whole system
-            verifyFlow(gs, "T1", -solutionFlow);
-            verifyFlow(gs, "V1", -solutionFlow);
-            verifyFlow(gs, "P1", solutionFlow);
-            verifyFlow(gs, "V2", solutionFlow);
-            verifyFlow(gs, "T2", solutionFlow);
-        }
+        private GraphSolver gs;
 
-        [TestMethod]
-        public void V1_25_PercentOpen_V2HalfClosed()
+        [TestInitialize()]
+        public void InitializeGraph()
         {
-            GraphSolver gs = createGraph();
-            FlowLine v1 = (FlowLine)gs.getComponent("V1");
-            v1.setFlowAllowedPercent(0.25);
-            FlowLine v2 = (FlowLine)gs.getComponent("V2");
-            v2.setFlowAllowedPercent(0.5);
-            gs.solveMimic();
-            double solutionFlow = 25.0;          //Single flow through whole system
-            verifyFlow(gs, "T1", -solutionFlow);
-            verifyFlow(gs, "V1", -solutionFlow);
-            verifyFlow(gs, "P1", solutionFlow);
-            verifyFlow(gs, "V2", solutionFlow);
-            verifyFlow(gs, "T2", solutionFlow);
-        }
-
-        [TestMethod]
-        public void V2Closed()
-        {
-            GraphSolver gs = createGraph();
-            FlowLine v2 = (FlowLine)gs.getComponent("V2");
-            v2.setFlowAllowedPercent(0.0);
-            gs.solveMimic();
-            double solutionFlow = 0.0;          //Single flow through whole system
-            verifyFlow(gs, "T1", -solutionFlow);
-            verifyFlow(gs, "V1", -solutionFlow);
-            verifyFlow(gs, "P1", solutionFlow);
-            verifyFlow(gs, "V2", solutionFlow);
-            verifyFlow(gs, "T2", solutionFlow);
-        }
-
-        [TestMethod]
-        public void T1Empty()
-        {
-            GraphSolver gs = createGraph();
-            Tank t1 = (Tank)gs.getComponent("T1");
-            t1.setCurrentVolume(0.0);
-            gs.solveMimic();
-            double solutionFlow = 0.0;          //Single flow through whole system
-            verifyFlow(gs, "T1", -solutionFlow);
-            verifyFlow(gs, "V1", -solutionFlow);
-            verifyFlow(gs, "P1", solutionFlow);
-            verifyFlow(gs, "V2", solutionFlow);
-            verifyFlow(gs, "T2", solutionFlow);
-        }
-
-        public void verifyFlow(GraphSolver gs, String name, double flow)
-        {
-            double componentFlow = gs.getComponent(name).getFlow();
-            Assert.AreEqual(flow, componentFlow, 0.00001);
-        }
-
-        private GraphSolver createGraph()
-        {
-            GraphSolver gs = new GraphSolver();
+            gs = new GraphSolver();
 
             Tank t1 = new Tank("T1", 1000.0, 500.0, new string[] { "V1" });
             gs.addComponent(t1);
@@ -107,8 +28,77 @@ namespace UnitTests
             gs.addComponent(t2);
 
             gs.connectComponents();
-
-            return gs;
         }
+
+        [TestMethod]
+        public void Straight_AllOpen()
+        {
+            gs.solveMimic();
+            double solutionFlow = 100.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void Straight_V2HalfClosed()
+        {
+            FlowLine v2 = (FlowLine)gs.getComponent("V2");
+            v2.setFlowAllowedPercent(0.5);
+            gs.solveMimic();
+            double solutionFlow = 50.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void Straight_V1_25_PercentOpen_V2HalfClosed()
+        {
+            FlowLine v1 = (FlowLine)gs.getComponent("V1");
+            v1.setFlowAllowedPercent(0.25);
+            FlowLine v2 = (FlowLine)gs.getComponent("V2");
+            v2.setFlowAllowedPercent(0.5);
+            gs.solveMimic();
+            double solutionFlow = 25.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void Straight_V2Closed()
+        {
+            FlowLine v2 = (FlowLine)gs.getComponent("V2");
+            v2.setFlowAllowedPercent(0.0);
+            gs.solveMimic();
+            double solutionFlow = 0.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void Straight_T1Empty()
+        {
+            Tank t1 = (Tank)gs.getComponent("T1");
+            t1.setCurrentVolume(0.0);
+            gs.solveMimic();
+            double solutionFlow = 0.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
     }
 }

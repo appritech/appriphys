@@ -17,12 +17,18 @@ namespace AppriPhysics.Components
         private FlowComponent source;
         private FlowComponent sink;
         private double flowAllowedPercent = 1.0f;
+        private double maxFlow = Double.MaxValue;
 
         private Dictionary<String, double> finalFlows = new Dictionary<String, double>();
 
         public void setFlowAllowedPercent(double flowAllowedPercent)
         {
             this.flowAllowedPercent = Math.Min(Math.Max(flowAllowedPercent, 0.0), 1.0);               //Clamp the value to be between 0 and 1
+        }
+
+        public void setMaxFlow(double maxFlow)
+        {
+            this.maxFlow = maxFlow;
         }
 
         public override void connectSelf(Dictionary<String, FlowComponent> components)
@@ -33,12 +39,24 @@ namespace AppriPhysics.Components
 
         public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            FlowResponseData ret = source.getSourcePossibleFlow(baseData, this, curPercent * flowAllowedPercent);
+            double limitScaler = curPercent * flowAllowedPercent;
+            if(baseData.desiredFlowVolume * limitScaler > maxFlow)
+            {
+                //Need to cut down even further, so that we don't go over our maximum.
+                limitScaler = maxFlow / baseData.desiredFlowVolume;
+            }
+            FlowResponseData ret = source.getSourcePossibleFlow(baseData, this, limitScaler);
             return ret;
         }
         public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            FlowResponseData ret = sink.getSinkPossibleFlow(baseData, this, curPercent * flowAllowedPercent);
+            double limitScaler = curPercent * flowAllowedPercent;
+            if (baseData.desiredFlowVolume * limitScaler > maxFlow)
+            {
+                //Need to cut down even further, so that we don't go over our maximum.
+                limitScaler = maxFlow / baseData.desiredFlowVolume;
+            }
+            FlowResponseData ret = sink.getSinkPossibleFlow(baseData, this, limitScaler);
             return ret;
         }
         public override void setSource(FlowComponent source)
