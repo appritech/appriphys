@@ -11,6 +11,8 @@ namespace AppriPhysics.Components
         public FlowComponent flowPusher;
         public double desiredFlowVolume;
         public int attempt;
-        public Dictionary<String, float> angerMap;
+        public Dictionary<String, double> angerMap = new Dictionary<String, double>();                  //TOOD: Make this lazy loading (probably a getter)
+        public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();           //TOOD: This shouldn't really be here...
+        //public Dictionary<String, double[]> combinerApplyMap = new Dictionary<String, double[]>();           //TOOD: This shouldn't really be here...
     }
 }

@@ -50,7 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="CombineBeforePumpTests.cs" />
+    <Compile Include="CombineBeforeAndAfterPumpTests.cs" />
     <Compile Include="SplitBeforePumpTests.cs" />
     <Compile Include="StraightPipeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

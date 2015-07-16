@@ -87,12 +87,12 @@ namespace AppriPhysics.Components
 
         public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            finalFlows.Add(baseData.flowPusher.name + "_" + caller.name + "_source", -1 * baseData.desiredFlowVolume * curPercent);
+            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
         }
 
         public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            finalFlows.Add(baseData.flowPusher.name + "_" + caller.name + "_sink", baseData.desiredFlowVolume * curPercent);
+            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
         }
     }
 }

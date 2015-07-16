@@ -39,8 +39,8 @@ namespace AppriPhysics.Components
 
         public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            double limitScaler = curPercent * flowAllowedPercent;
-            if(baseData.desiredFlowVolume * limitScaler > maxFlow)
+            double limitScaler = Math.Min(curPercent, flowAllowedPercent);
+            if (baseData.desiredFlowVolume * limitScaler > maxFlow)
             {
                 //Need to cut down even further, so that we don't go over our maximum.
                 limitScaler = maxFlow / baseData.desiredFlowVolume;
@@ -50,7 +50,7 @@ namespace AppriPhysics.Components
         }
         public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            double limitScaler = curPercent * flowAllowedPercent;
+            double limitScaler = Math.Min(curPercent, flowAllowedPercent);
             if (baseData.desiredFlowVolume * limitScaler > maxFlow)
             {
                 //Need to cut down even further, so that we don't go over our maximum.
