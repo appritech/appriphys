@@ -37,7 +37,6 @@ namespace AppriPhysics.Components
 
         public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            baseData = new FlowCalculationData();
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
             return sink.getSinkPossibleFlow(baseData, this, 1.0);             //Always ask 100% of whatever desired flow we have
@@ -45,7 +44,6 @@ namespace AppriPhysics.Components
 
         public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            baseData = new FlowCalculationData();
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
             return source.getSourcePossibleFlow(baseData, this, 1.0);         //Always ask 100% of whatever desired flow we have. Will send smaller percent upon solving whole solution.
@@ -56,10 +54,10 @@ namespace AppriPhysics.Components
             this.source = source;
         }
 
-        public void applySolution(double curPercent)
+        public void applySolution(FlowCalculationData baseData, double curPercent)
         {
-            setSourceFlow(null, null, curPercent);
-            setSinkFlow(null, null, curPercent);
+            setSourceFlow(baseData, null, curPercent);
+            setSinkFlow(baseData, null, curPercent);
         }
 
         public override double getFlow()
@@ -89,7 +87,6 @@ namespace AppriPhysics.Components
 
         public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            baseData = new FlowCalculationData();
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
 
@@ -99,7 +96,6 @@ namespace AppriPhysics.Components
 
         public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            baseData = new FlowCalculationData();
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
 

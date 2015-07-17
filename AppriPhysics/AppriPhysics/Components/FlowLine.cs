@@ -37,7 +37,7 @@ namespace AppriPhysics.Components
             sink.setSource(this);
         }
 
-        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        private double getLimitScaler(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
             double limitScaler = Math.Min(curPercent, flowAllowedPercent);
             if (baseData.desiredFlowVolume * limitScaler > maxFlow)
@@ -45,23 +45,45 @@ namespace AppriPhysics.Components
                 //Need to cut down even further, so that we don't go over our maximum.
                 limitScaler = maxFlow / baseData.desiredFlowVolume;
             }
+
+            //Apply anger effects, if they are needed.
+            if (baseData.angerMap.ContainsKey(name))
+            {
+                limitScaler *= baseData.angerMap[name];
+            }
+
+            return limitScaler;
+        }
+
+        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        {
+            double limitScaler = getLimitScaler(baseData, caller, curPercent);
             FlowResponseData ret = source.getSourcePossibleFlow(baseData, this, limitScaler);
             return ret;
         }
         public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            double limitScaler = Math.Min(curPercent, flowAllowedPercent);
-            if (baseData.desiredFlowVolume * limitScaler > maxFlow)
-            {
-                //Need to cut down even further, so that we don't go over our maximum.
-                limitScaler = maxFlow / baseData.desiredFlowVolume;
-            }
+            double limitScaler = getLimitScaler(baseData, caller, curPercent);
             FlowResponseData ret = sink.getSinkPossibleFlow(baseData, this, limitScaler);
             return ret;
         }
         public override void setSource(FlowComponent source)
         {
             this.source = source;
+        }
+
+        public override double getAngerLevel(Dictionary<String, double> angerMap)
+        {
+            double flow = Math.Abs(getFlow());              //Source lines have negative flow, so we need to make sure we look at ABS.
+            if(angerMap.ContainsKey(name))
+            {
+                //If we were already angry, we should check and make sure that we don't need to forgive
+                if (maxFlow - flow > 0.1)           //If our current flow is significantly lower than our max flow, then we need to forgive
+                    return -1.0;                    //Send negative value to cause forgiveness
+            }
+            if (flow > maxFlow)
+                return maxFlow / flow;
+            return 0.0;
         }
 
         public override double getFlow()
@@ -76,13 +98,13 @@ namespace AppriPhysics.Components
 
         public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            finalFlows.Add(baseData.flowPusher.name + "_source", -1 * baseData.desiredFlowVolume * curPercent);
+            finalFlows[baseData.flowPusher.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
             source.setSourceFlow(baseData, this, curPercent);
         }
 
         public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
         {
-            finalFlows.Add(baseData.flowPusher.name + "_sink", baseData.desiredFlowVolume * curPercent);
+            finalFlows[baseData.flowPusher.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
             sink.setSinkFlow(baseData, this, curPercent);
         }
 

@@ -53,14 +53,14 @@ namespace AppriPhysics.Components
                 sink.setSource(this);
                 sinks[i] = sink;
                 if (sinks.Length > 1)
-                    indexByName.Add(sink.name, i);
+                    indexByName[sink.name] = i;
             }
             for (int i = 0; i < sourceNames.Length; i++)
             {
                 FlowComponent source = components[sourceNames[i]];
                 sources[i] = source;
                 if (sources.Length > 1)
-                    indexByName.Add(source.name, i);
+                    indexByName[source.name] = i;
             }
             //TODO: Add code to validate the configuration, so that we are either 1 to many or many to one. Never many to many (and never 0 anywhere)
             hasMultipleSinks = sinks.Length > 1;
@@ -104,7 +104,7 @@ namespace AppriPhysics.Components
             }
 
             if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name + (isSink ? "_sink" : "_source")))
-                flowPercentageSolutions.Add(baseData.flowPusher.name + (isSink ? "_sink" : "_source"), new double[nodes.Length]);
+                flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[nodes.Length];
 
             //If we get here, then we have all the info we should need to solve ourselves.
             for (int i = 0; i < nodes.Length; i++)
@@ -186,7 +186,7 @@ namespace AppriPhysics.Components
                         toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
                 }
                     
-                baseData.combinerMap.Add(baseData.flowPusher.name + "_" + name, toAdd);
+                baseData.combinerMap[baseData.flowPusher.name + "_" + name] = toAdd;
             }
 
             double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
@@ -230,7 +230,7 @@ namespace AppriPhysics.Components
                     else
                         toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
                 }
-                baseData.combinerMap.Add(baseData.flowPusher.name + "_" + name, toAdd);
+                baseData.combinerMap[baseData.flowPusher.name + "_" + name] = toAdd;
             }
 
             double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
@@ -259,7 +259,7 @@ namespace AppriPhysics.Components
             }
 
             if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name + (isSink ? "_sink" : "_source")))
-                flowPercentageSolutions.Add(baseData.flowPusher.name + (isSink ? "_sink" : "_source"), new double[1]);
+                flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[1];
             flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][0] = ret.flowPercent;
 
             return ret;
@@ -306,7 +306,7 @@ namespace AppriPhysics.Components
             if (!hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
                 if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
-                    indexesUsedByPump.Add(baseData.flowPusher.name, new bool[sources.Length]);
+                    indexesUsedByPump[baseData.flowPusher.name] = new bool[sources.Length];
                 indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
             }
         }
@@ -320,7 +320,7 @@ namespace AppriPhysics.Components
             if (hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
                 if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
-                    indexesUsedByPump.Add(baseData.flowPusher.name, new bool[sinks.Length]);
+                    indexesUsedByPump[baseData.flowPusher.name] = new bool[sinks.Length];
                 indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
             }
         }

@@ -20,6 +20,10 @@ namespace AppriPhysics.Components
         {
             //This should probably be abstract... but default can do nothing...
         }
+        public virtual double getAngerLevel(Dictionary<String, double> angerMap)
+        {
+            return 0.0;                     //Most components can't get angry, so default is no anger!
+        }
         public abstract void setSource(FlowComponent source);
         public abstract double getFlow();
 

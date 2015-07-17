@@ -56,7 +56,8 @@ namespace AppriPhysics
             //v1.setFlowAllowedPercent(0.5);
             //v4.setFlowAllowedPercent(0.2);
             //t1.setCurrentVolume(0.0);
-            v5.setMaxFlow(50.0);
+            v5.setMaxFlow(100.0);
+            v0.setMaxFlow(85.0);
             //v5.setFlowAllowedPercent(0.5);
 
             gs.connectComponents();

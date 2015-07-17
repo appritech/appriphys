@@ -8,11 +8,16 @@ namespace AppriPhysics.Components
 {
     public class FlowCalculationData
     {
+        public FlowCalculationData(FlowComponent flowPusher, Dictionary<String, double> angerMap, int attempt)
+        {
+            this.flowPusher = flowPusher;
+            this.angerMap = angerMap;
+            this.attempt = attempt;
+        }
         public FlowComponent flowPusher;
         public double desiredFlowVolume;
         public int attempt;
-        public Dictionary<String, double> angerMap = new Dictionary<String, double>();                  //TOOD: Make this lazy loading (probably a getter)
+        public Dictionary<String, double> angerMap;
         public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();           //TOOD: This shouldn't really be here...
-        //public Dictionary<String, double[]> combinerApplyMap = new Dictionary<String, double[]>();           //TOOD: This shouldn't really be here...
     }
 }

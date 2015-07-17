@@ -65,6 +65,73 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void D_V5_85MaxFlow_V0_100MaxFlow()
+        {
+            FlowLine v0 = (FlowLine)gs.getComponent("V0");
+            v0.setMaxFlow(85.0);
+            FlowLine v5 = (FlowLine)gs.getComponent("V5");
+            v5.setMaxFlow(100.0);
+            gs.solveMimic();
+            double solutionFlow = 85.0;          //Basic flow through system, but the branches should share half
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V0", -solutionFlow);
+            TestingTools.verifyFlow(gs, "C1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V2", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P2", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V3", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V4", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "C2", solutionFlow);
+            TestingTools.verifyFlow(gs, "V5", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void D_V5_50MaxFlow_V0_25MaxFlow()
+        {
+            FlowLine v0 = (FlowLine)gs.getComponent("V0");
+            v0.setMaxFlow(25.0);
+            FlowLine v5 = (FlowLine)gs.getComponent("V5");
+            v5.setMaxFlow(50.0);
+            gs.solveMimic();
+            double solutionFlow = 25.0;          //Basic flow through system, but the branches should share half
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V0", -solutionFlow);
+            TestingTools.verifyFlow(gs, "C1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V2", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P2", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V3", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V4", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "C2", solutionFlow);
+            TestingTools.verifyFlow(gs, "V5", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
+        public void D_V5_50MaxFlow()
+        {
+            FlowLine v5 = (FlowLine)gs.getComponent("V5");
+            v5.setMaxFlow(50.0);
+            gs.solveMimic();
+            double solutionFlow = 50.0;          //Basic flow through system, but the branches should share half
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V0", -solutionFlow);
+            TestingTools.verifyFlow(gs, "C1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V2", -solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "P2", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V3", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "V4", solutionFlow / 2.0);
+            TestingTools.verifyFlow(gs, "C2", solutionFlow);
+            TestingTools.verifyFlow(gs, "V5", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+        }
+
+        [TestMethod]
         public void D_V5_50Percent()
         {
             FlowLine v5 = (FlowLine)gs.getComponent("V5");
