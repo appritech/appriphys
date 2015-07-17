@@ -29,6 +29,9 @@ namespace AppriPhysics.Components
         public abstract void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
         public abstract void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
 
+        public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
+        public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);
+
         public String solutionString()
         {
             return name + " flow: " + getFlow();

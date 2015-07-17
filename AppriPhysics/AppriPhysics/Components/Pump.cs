@@ -106,5 +106,15 @@ namespace AppriPhysics.Components
             lastSolutionFlow = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
             sink.setSinkFlow(baseData, this, 1.0);
         }
+
+        public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            source.exploreSourceGraph(baseData, this);
+        }
+
+        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            sink.exploreSinkGraph(baseData, this);
+        }
     }
 }

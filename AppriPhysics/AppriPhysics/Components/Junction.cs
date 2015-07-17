@@ -33,6 +33,7 @@ namespace AppriPhysics.Components
         private Dictionary<String, double> finalFlows = new Dictionary<String, double>();
         private Dictionary<String, double[]> flowPercentageSolutions = new Dictionary<String, double[]>();
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
+        private Dictionary<String, bool[]> indexesUsedByPump = new Dictionary<String, bool[]>();
 
         public override double getFlow()
         {
@@ -178,7 +179,13 @@ namespace AppriPhysics.Components
             {
                 double[] toAdd = new double[indexByName.Count];
                 for (int i = 0; i < indexByName.Count; i++)
-                    toAdd[i] = -1.0f;                                   //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                {
+                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
+                        toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                    else
+                        toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                }
+                    
                 baseData.combinerMap.Add(baseData.flowPusher.name + "_" + name, toAdd);
             }
 
@@ -217,7 +224,12 @@ namespace AppriPhysics.Components
             {
                 double[] toAdd = new double[indexByName.Count];
                 for (int i = 0; i < indexByName.Count; i++)
-                    toAdd[i] = -1.0f;                                   //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                {
+                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
+                        toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                    else
+                        toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                }
                 baseData.combinerMap.Add(baseData.flowPusher.name + "_" + name, toAdd);
             }
 
@@ -283,6 +295,34 @@ namespace AppriPhysics.Components
                 setFlowValues(baseData, caller, curPercent, sources, false);
             else
                 setCombiningFlowValues(baseData, caller, curPercent, sources, false);
+        }
+
+        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            for (int i = 0; i < sinks.Length; i++)
+            {
+                sinks[i].exploreSinkGraph(baseData, this);
+            }
+            if (!hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
+            {
+                if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
+                    indexesUsedByPump.Add(baseData.flowPusher.name, new bool[sources.Length]);
+                indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
+            }
+        }
+
+        public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            for (int i = 0; i < sources.Length; i++)
+            {
+                sources[i].exploreSourceGraph(baseData, this);
+            }
+            if (hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
+            {
+                if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
+                    indexesUsedByPump.Add(baseData.flowPusher.name, new bool[sinks.Length]);
+                indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
+            }
         }
     }
 }

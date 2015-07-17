@@ -33,6 +33,13 @@ namespace AppriPhysics.Solving
             {
                 iter.connectSelf(components);
             }
+            foreach(Pump iter in pumps.Values)
+            {
+                FlowCalculationData baseData = new FlowCalculationData();
+                baseData.flowPusher = iter;
+                iter.exploreSinkGraph(baseData, null);
+                iter.exploreSourceGraph(baseData, null);
+            }
         }
 
         public void solveMimic()

@@ -85,5 +85,15 @@ namespace AppriPhysics.Components
             finalFlows.Add(baseData.flowPusher.name + "_sink", baseData.desiredFlowVolume * curPercent);
             sink.setSinkFlow(baseData, this, curPercent);
         }
+
+        public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            source.exploreSourceGraph(baseData, this);
+        }
+
+        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        {
+            sink.exploreSinkGraph(baseData, this);
+        }
     }
 }
