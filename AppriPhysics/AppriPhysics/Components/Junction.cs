@@ -62,7 +62,7 @@ namespace AppriPhysics.Components
                 if (sources.Length > 1)
                     indexByName[source.name] = i;
             }
-            //TODO: Add code to validate the configuration, so that we are either 1 to many or many to one. Never many to many (and never 0 anywhere)
+            //TODO: Add code to validate the configuration, so that we are either 'one to many' or 'many to one'. Never many to many (and never 0 anywhere)
             hasMultipleSinks = sinks.Length > 1;
         }
 
@@ -74,11 +74,6 @@ namespace AppriPhysics.Components
         private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double curPercent, FlowComponent[] nodes, bool isSink)
         {
             FlowResponseData[] responses = new FlowResponseData[nodes.Length];
-            double[] maxFlowPercent = new double[nodes.Length];
-            double[] preferredFlowPercent = new double[nodes.Length];
-            double currentSum = 0.0;
-            double percentToReturn = 0.0;
-            double sumOfMaxFlow = 0;
             bool foundNull = false;
             for (int attempt = 0; attempt < 2; attempt++)
             {
@@ -107,26 +102,81 @@ namespace AppriPhysics.Components
                 flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[nodes.Length];
 
             //If we get here, then we have all the info we should need to solve ourselves.
+
+            double desiredPercent = curPercent;
+
+            double[] maxFlowPercent = new double[nodes.Length];
+            double[] preferredFlowPercent = new double[nodes.Length];
+            double percentToReturn = 0.0;
+            double sumOfMaxFlow = 0;
+            double currentSum = 0.0;
+
+            bool allSameCombinerOrTank = true;
+            FlowComponent lastCombinerOrTank = null;
             for (int i = 0; i < nodes.Length; i++)
             {
-                maxFlowPercent[i] = Math.Min(maxWeights[i], responses[i].flowPercent);
-                preferredFlowPercent[i] = Math.Min(normalWeights[i], maxFlowPercent[i]) * curPercent;
-                currentSum += preferredFlowPercent[i];
-                percentToReturn += preferredFlowPercent[i];
-                sumOfMaxFlow += maxFlowPercent[i];
+                if (!(lastCombinerOrTank == null || responses[i].lastCombinerOrTank == lastCombinerOrTank))
+                    allSameCombinerOrTank = false;
+                lastCombinerOrTank = responses[i].lastCombinerOrTank;
             }
 
-            if (currentSum < curPercent && sumOfMaxFlow > 0.0)                //sum > 0.0 helps us avoid a divide by 0 below. Also, if we can't push anything, then 0 is the right answer
+            if (allSameCombinerOrTank && lastCombinerOrTank != null)
+            {
+                desiredPercent = Math.Min(responses[0].lastCombinerOrTankPercent, curPercent);            //All are equal... grab first. This is the combiner's maxFlow
+
+                double[] flowPercentToCombiner;
+                //NOTE: Both solutions with both divisors gave the same answer, and I found the bug elsewhere...
+                //TODO: Determing what divisor we actually want to use.
+                if (baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + lastCombinerOrTank.name))
+                    flowPercentToCombiner = baseData.combinerMap[baseData.flowPusher.name + "_" + lastCombinerOrTank.name];
+                else
+                {
+                    flowPercentToCombiner = new double[nodes.Length];
+                    for (int i = 0; i < nodes.Length; i++)
+                        flowPercentToCombiner[i] = responses[i].flowPercent;              //This was my original solution, but the map is better.
+                }
+
+                double tempSum = 0.0;
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    maxFlowPercent[i] = Math.Min(maxWeights[i], flowPercentToCombiner[i]);
+                    preferredFlowPercent[i] = Math.Min(normalWeights[i], maxFlowPercent[i]) * desiredPercent;
+                    tempSum += preferredFlowPercent[i];
+                }
+
+                preferredFlowPercent = fixPercents(preferredFlowPercent, maxFlowPercent, desiredPercent);
+                //Normalize preferredFlowPercent (since we know the final flow as desiredPercent, we can safely do so in this case)
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    currentSum += preferredFlowPercent[i];
+                    percentToReturn += preferredFlowPercent[i];
+                    sumOfMaxFlow += maxFlowPercent[i];
+                }
+            }
+            else
+            {
+                desiredPercent = curPercent;
+                
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    maxFlowPercent[i] = Math.Min(maxWeights[i], responses[i].flowPercent);
+                    preferredFlowPercent[i] = Math.Min(normalWeights[i], maxFlowPercent[i]) * desiredPercent;
+                    currentSum += preferredFlowPercent[i];
+                    percentToReturn += preferredFlowPercent[i];
+                    sumOfMaxFlow += maxFlowPercent[i];
+                }
+            }
+            
+            if (currentSum < desiredPercent && sumOfMaxFlow > 0.0)                //sum > 0.0 helps us avoid a divide by 0 below. Also, if we can't push anything, then 0 is the right answer
             {
                 percentToReturn = 0;
-
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     double trueFlowPercent;
                     if (sumOfMaxFlow == 0.0)
                         trueFlowPercent = 0.0;
                     else
-                        trueFlowPercent = curPercent * (maxFlowPercent[i] / sumOfMaxFlow);
+                        trueFlowPercent = desiredPercent * (maxFlowPercent[i] / sumOfMaxFlow);
 
                     trueFlowPercent = Math.Min(trueFlowPercent, maxWeights[i]);            //Probably don't need this one, since the one right below is better.
                     trueFlowPercent = Math.Min(trueFlowPercent, maxFlowPercent[i]);
@@ -144,7 +194,7 @@ namespace AppriPhysics.Components
                 }
             }
 
-            //Need to normalize the flowPercenageSolutions, so that they sum to 1.0, so that when we set values, we are spliting 100% of the smaller portion that is coming down to us (and don't double-limit things).
+            //Need to normalize the flowPercenageSolutions, so that they sum to 1.0, so that when we set values, we are spliting 100 % of the smaller portion that is coming down to us(and don't double-limit things).
             if (percentToReturn != 0.0)
             {
                 for (int i = 0; i < nodes.Length; i++)
@@ -155,6 +205,46 @@ namespace AppriPhysics.Components
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
             return ret;
+        }
+
+        private double[] fixPercents(double[] preferredFlowPercent, double[] maxFlowPercent, double desiredPercent)
+        {
+            for(int attemp = 0; attemp < preferredFlowPercent.Length; attemp++)
+            {
+                double sum = 0.0;
+                double goal = desiredPercent;
+                for(int i = 0; i < preferredFlowPercent.Length; i++)
+                {
+                    if(preferredFlowPercent[i] == maxFlowPercent[i])
+                    {
+                        //This one is at max, so doesn't count
+                        goal -= preferredFlowPercent[i];
+                    }
+                    else
+                    {
+                        sum += preferredFlowPercent[i];
+                    }
+                }
+                if (sum >= desiredPercent - 0.0000000001)           //Make sure rounding is ok
+                    return preferredFlowPercent;
+                if (sum == 0.0)
+                    return preferredFlowPercent;                    //All items are maxed, so we have to be finished.
+                for(int i = 0; i < preferredFlowPercent.Length; i++)
+                {
+                    if(preferredFlowPercent[i] < maxFlowPercent[i])
+                    {
+                        //Crank this one up a bit
+                        double newValue = preferredFlowPercent[i] * goal / sum;       //If all of them can take it, one pass will get us there.
+                        preferredFlowPercent[i] = Math.Min(newValue, maxFlowPercent[i]);
+                    }
+                    else
+                    {
+                        preferredFlowPercent[i] = maxFlowPercent[i];
+                    }
+                }
+            }
+
+            return preferredFlowPercent;
         }
 
         private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double curPercent, FlowComponent[] nodes, bool isSink)
@@ -245,13 +335,17 @@ namespace AppriPhysics.Components
                 else
                     percentSum += percentMap[i];
             }
+            
             if (percentSum > 1.0)
                 percentSum = 1.0;
-            FlowResponseData ret;
+            FlowResponseData ret = new FlowResponseData();
             if (isSink)
                 ret = sinks[0].getSinkPossibleFlow(baseData, this, percentSum);
             else
                 ret = sources[0].getSourcePossibleFlow(baseData, this, percentSum);
+
+            ret.setLastCombinerOrTank(this, ret.flowPercent);
+
             if (percentSum != 0.0)
             {
                 ret.flowPercent *= (percentMap[index] / percentSum);             //The divide here is to normalize it.
@@ -261,7 +355,7 @@ namespace AppriPhysics.Components
             if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name + (isSink ? "_sink" : "_source")))
                 flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[1];
             flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][0] = ret.flowPercent;
-
+            
             return ret;
         }
 

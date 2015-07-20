@@ -48,6 +48,7 @@ namespace AppriPhysics.Components
                 ret.flowPercent = 0.0f;
                 ret.flowVolume = 0.0f;
             }
+            ret.setLastCombinerOrTank(this, ret.flowPercent);
             return ret;
         }
         public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
@@ -63,6 +64,7 @@ namespace AppriPhysics.Components
                 ret.flowPercent = 0.0f;
                 ret.flowVolume = 0.0f;
             }
+            ret.setLastCombinerOrTank(this, ret.flowPercent);
             return ret;
         }
         public override void setSource(FlowComponent source)

@@ -11,5 +11,12 @@ namespace AppriPhysics.Components
         public double flowPercent;
         public double flowVolume;
         public int attempt;
+        public FlowComponent lastCombinerOrTank;            //TODO: Think of a real name for this, and make it real functionality
+        public double lastCombinerOrTankPercent;            //TODO: Think of a real name for this, and make it real functionality
+        public void setLastCombinerOrTank(FlowComponent combinerOrTank, double combinerOrTankPercent)
+        {
+            lastCombinerOrTank = combinerOrTank;
+            lastCombinerOrTankPercent = combinerOrTankPercent;            //Current value is the one to stash.
+        }
     }
 }

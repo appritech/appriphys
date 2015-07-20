@@ -18,6 +18,6 @@ namespace AppriPhysics.Components
         public double desiredFlowVolume;
         public int attempt;
         public Dictionary<String, double> angerMap;
-        public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();           //TOOD: This shouldn't really be here...
+        public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();           //TOOD: This maybe shouldn't really be here...
     }
 }
