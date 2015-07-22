@@ -15,7 +15,8 @@ namespace AppriPhysics.Components
 
         public String name;
         protected Dictionary<String, FlowResponseData> lastResponses;
-        
+        protected Dictionary<String, double> finalFlows = new Dictionary<String, double>();
+
         public virtual void connectSelf(Dictionary<String, FlowComponent> components)
         {
             //This should probably be abstract... but default can do nothing...
@@ -25,13 +26,21 @@ namespace AppriPhysics.Components
             return 0.0;                     //Most components can't get angry, so default is no anger!
         }
         public abstract void setSource(FlowComponent source);
-        public abstract double getFlow();
+        public double getFlow()
+        {
+            double flow = 0.0;
+            foreach (double iter in finalFlows.Values)
+            {
+                flow += iter;
+            }
+            return flow;
+        }
 
-        public abstract FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
-        public abstract FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
+        public abstract FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
+        public abstract FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
 
-        public abstract void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
-        public abstract void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent);
+        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
+        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
         public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);

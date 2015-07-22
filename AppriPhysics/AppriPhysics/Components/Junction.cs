@@ -30,21 +30,10 @@ namespace AppriPhysics.Components
         FlowComponent[] sinks;
         FlowComponent[] sources;
         bool hasMultipleSinks;
-        private Dictionary<String, double> finalFlows = new Dictionary<String, double>();
         private Dictionary<String, double[]> flowPercentageSolutions = new Dictionary<String, double[]>();
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
         private Dictionary<String, bool[]> indexesUsedByPump = new Dictionary<String, bool[]>();
-
-        public override double getFlow()
-        {
-            double flow = 0.0;
-            foreach (double iter in finalFlows.Values)
-            {
-                flow += iter;
-            }
-            return flow;
-        }
-
+        
         public override void connectSelf(Dictionary<string, FlowComponent> components)
         {
             for (int i = 0; i < sinkNames.Length; i++)
@@ -71,7 +60,7 @@ namespace AppriPhysics.Components
             //We wire ourselves up completely (inputs and outputs), so don't need to do anything here.
         }
 
-        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double curPercent, FlowComponent[] nodes, bool isSink)
+        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isSink)
         {
             FlowResponseData[] responses = new FlowResponseData[nodes.Length];
             bool foundNull = false;
@@ -82,9 +71,9 @@ namespace AppriPhysics.Components
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     if(isSink)
-                        responses[i] = nodes[i].getSinkPossibleFlow(baseData, this, Math.Min(curPercent, maxWeights[i]));
+                        responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
                     else
-                        responses[i] = nodes[i].getSourcePossibleFlow(baseData, this, Math.Min(curPercent, maxWeights[i]));
+                        responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
 
                     if (responses[i] == null)
                         foundNull = true;
@@ -103,7 +92,7 @@ namespace AppriPhysics.Components
 
             //If we get here, then we have all the info we should need to solve ourselves.
 
-            double desiredPercent = curPercent;
+            double desiredPercent = flowPercent;
 
             double[] maxFlowPercent = new double[nodes.Length];
             double[] preferredFlowPercent = new double[nodes.Length];
@@ -122,7 +111,7 @@ namespace AppriPhysics.Components
 
             if (allSameCombinerOrTank && lastCombinerOrTank != null)
             {
-                desiredPercent = Math.Min(responses[0].lastCombinerOrTankPercent, curPercent);            //All are equal... grab first. This is the combiner's maxFlow
+                desiredPercent = Math.Min(responses[0].lastCombinerOrTankPercent, flowPercent);            //All are equal... grab first. This is the combiner's maxFlow
 
                 double[] flowPercentToCombiner;
                 //NOTE: Both solutions with both divisors gave the same answer, and I found the bug elsewhere...
@@ -155,7 +144,7 @@ namespace AppriPhysics.Components
             }
             else
             {
-                desiredPercent = curPercent;
+                desiredPercent = flowPercent;
                 
                 for (int i = 0; i < nodes.Length; i++)
                 {
@@ -180,7 +169,6 @@ namespace AppriPhysics.Components
 
                     trueFlowPercent = Math.Min(trueFlowPercent, maxWeights[i]);            //Probably don't need this one, since the one right below is better.
                     trueFlowPercent = Math.Min(trueFlowPercent, maxFlowPercent[i]);
-                    //trueFlows.set(i, trueFlowPercent);
                     flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][i] = trueFlowPercent;
                     percentToReturn += trueFlowPercent;
                 }
@@ -247,22 +235,22 @@ namespace AppriPhysics.Components
             return preferredFlowPercent;
         }
 
-        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double curPercent, FlowComponent[] nodes, bool isSink)
+        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
         {
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkFlow(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_sink"][i] * curPercent);
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_sink"][i] * flowPercent);
                 else
-                    nodes[i].setSourceFlow(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_source"][i] * curPercent);
+                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_source"][i] * flowPercent);
             }
             if (isSink)
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
+                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
             else
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
+                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
         }
 
-        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double curPercent, FlowComponent[] nodes, bool isSink)
+        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
         {
             //Here, we need to wait until we get all of our values set, before passing the single value down.
             if (!baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + name))
@@ -281,13 +269,13 @@ namespace AppriPhysics.Components
 
             double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
             int index = indexByName[caller.name];
-            percentMap[index] = curPercent;
+            percentMap[index] = flowPercent;
 
             //Always set this data, it is for internal use
             if (isSink)
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
+                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
             else
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
+                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
 
             double percentSum = 0.0;
             for (int i = 0; i < percentMap.Length; i++)
@@ -302,13 +290,13 @@ namespace AppriPhysics.Components
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkFlow(baseData, this, percentSum);
+                    nodes[i].setSinkValues(baseData, this, percentSum);
                 else
-                    nodes[i].setSourceFlow(baseData, this, percentSum);
+                    nodes[i].setSourceValues(baseData, this, percentSum);
             }
         }
 
-        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double curPercent, FlowComponent[] nodes, bool isSink)
+        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
         {
             if(!baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + name))
             {
@@ -325,7 +313,7 @@ namespace AppriPhysics.Components
 
             double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
             int index = indexByName[caller.name];
-            percentMap[index] = curPercent;
+            percentMap[index] = flowPercent;
 
             double percentSum = 0.0;
             for(int i = 0; i < percentMap.Length; i++)
@@ -340,9 +328,9 @@ namespace AppriPhysics.Components
                 percentSum = 1.0;
             FlowResponseData ret = new FlowResponseData();
             if (isSink)
-                ret = sinks[0].getSinkPossibleFlow(baseData, this, percentSum);
+                ret = sinks[0].getSinkPossibleValues(baseData, this, percentSum);
             else
-                ret = sources[0].getSourcePossibleFlow(baseData, this, percentSum);
+                ret = sources[0].getSourcePossibleValues(baseData, this, percentSum);
 
             ret.setLastCombinerOrTank(this, ret.flowPercent);
 
@@ -359,36 +347,36 @@ namespace AppriPhysics.Components
             return ret;
         }
 
-        public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             if (hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, curPercent, sinks, true);
+                return calculateSplittingFunctionality(baseData, flowPercent, sinks, true);
             else
-                return calculateCombiningFunctionality(baseData, caller, curPercent, sources, true);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, sources, true);
         }
 
-        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             if (!hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, curPercent, sources, false);
+                return calculateSplittingFunctionality(baseData, flowPercent, sources, false);
             else
-                return calculateCombiningFunctionality(baseData, caller, curPercent, sinks, false);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false);
         }
 
-        public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             if (hasMultipleSinks)
-                setFlowValues(baseData, caller, curPercent, sinks, true);
+                setFlowValues(baseData, caller, flowPercent, sinks, true);
             else
-                setCombiningFlowValues(baseData, caller, curPercent, sinks, true);
+                setCombiningFlowValues(baseData, caller, flowPercent, sinks, true);
         }
 
-        public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             if (!hasMultipleSinks)
-                setFlowValues(baseData, caller, curPercent, sources, false);
+                setFlowValues(baseData, caller, flowPercent, sources, false);
             else
-                setCombiningFlowValues(baseData, caller, curPercent, sources, false);
+                setCombiningFlowValues(baseData, caller, flowPercent, sources, false);
         }
 
         public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)

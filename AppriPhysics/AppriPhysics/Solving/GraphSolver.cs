@@ -135,8 +135,8 @@ namespace AppriPhysics.Solving
                 modifier = pumpModifiers[p.name];
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
-            FlowResponseData sourceAbility = p.getSourcePossibleFlow(baseData, null, modifier);       //Only pumps can take null
-            FlowResponseData sinkAbility = p.getSinkPossibleFlow(baseData, null, modifier);           //Only pumps can take null
+            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, null, modifier);       //Only pumps can take null
+            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, null, modifier);           //Only pumps can take null
             double minAbility = Math.Min(sourceAbility.flowPercent, sinkAbility.flowPercent);
             if(minAbility < modifier)
             {
@@ -153,7 +153,6 @@ namespace AppriPhysics.Solving
         {
             foreach(FlowComponent iter in components.Values)
             {
-                String dumb = iter.solutionString();
                 System.Console.WriteLine(iter.solutionString());
             }
         }

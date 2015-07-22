@@ -20,9 +20,7 @@ namespace AppriPhysics.Components
         //private FlowComponent sink;             //Needs to be a collection of sinks, if we think we want to use it.
         private double capacity;
         private double currentVolume;
-
-        private Dictionary<String, double> finalFlows = new Dictionary<String, double>();
-
+        
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
             if (sinkNames != null && sinkNames.Length > 0)
@@ -35,13 +33,13 @@ namespace AppriPhysics.Components
             }
         }
 
-        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             FlowResponseData ret = new FlowResponseData();
             if(currentVolume > 0.0)
             {
-                ret.flowPercent = curPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
-                ret.flowVolume = curPercent * baseData.desiredFlowVolume;
+                ret.flowPercent = flowPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
+                ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             }
             else
             {
@@ -51,13 +49,13 @@ namespace AppriPhysics.Components
             ret.setLastCombinerOrTank(this, ret.flowPercent);
             return ret;
         }
-        public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             FlowResponseData ret = new FlowResponseData();
             if (currentVolume < double.MaxValue)             //TODO: Make it so that tanks can't overflow, especially sealed tanks... Right now, it will pretty much always accept any flow that we want to put into it...
             {
-                ret.flowPercent = curPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
-                ret.flowVolume = curPercent * baseData.desiredFlowVolume;
+                ret.flowPercent = flowPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
+                ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             }
             else
             {
@@ -77,24 +75,14 @@ namespace AppriPhysics.Components
             this.currentVolume = volume;
         }
 
-        public override double getFlow()
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double flow = 0.0;
-            foreach (double iter in finalFlows.Values)
-            {
-                flow += iter;
-            }
-            return flow;
+            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
         }
 
-        public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
-        }
-
-        public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
-        {
-            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
+            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

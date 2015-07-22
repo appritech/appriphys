@@ -14,10 +14,13 @@ namespace AppriPhysics.Components
             this.angerMap = angerMap;
             this.attempt = attempt;
         }
+
         public FlowComponent flowPusher;
-        public double desiredFlowVolume;
         public int attempt;
         public Dictionary<String, double> angerMap;
+
+        public double desiredFlowVolume;
+
         public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();           //TOOD: This maybe shouldn't really be here...
     }
 }

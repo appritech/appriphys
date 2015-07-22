@@ -22,7 +22,6 @@ namespace AppriPhysics.Components
         private FlowComponent source;
         private FlowComponent sink;
         private double pumpingPercent = 1.0f;
-        private double lastSolutionFlow = 0.0f;
 
         private void setPumpingPercent(double pumpingPercent)
         {
@@ -35,18 +34,18 @@ namespace AppriPhysics.Components
             sink.setSource(this);
         }
 
-        public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
-            return sink.getSinkPossibleFlow(baseData, this, 1.0);             //Always ask 100% of whatever desired flow we have
+            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
+            return sink.getSinkPossibleValues(baseData, this, 1.0);             //Always ask 100% of whatever desired flow we have
         }
 
-        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
-            return source.getSourcePossibleFlow(baseData, this, 1.0);         //Always ask 100% of whatever desired flow we have. Will send smaller percent upon solving whole solution.
+            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
+            return source.getSourcePossibleValues(baseData, this, 1.0);         //Always ask 100% of whatever desired flow we have. Will send smaller percent upon solving whole solution.
         }
 
         public override void setSource(FlowComponent source)
@@ -54,33 +53,28 @@ namespace AppriPhysics.Components
             this.source = source;
         }
 
-        public void applySolution(FlowCalculationData baseData, double curPercent)
+        public void applySolution(FlowCalculationData baseData, double flowPercent)
         {
-            setSourceFlow(baseData, null, curPercent);
-            setSinkFlow(baseData, null, curPercent);
-        }
-
-        public override double getFlow()
-        {
-            return lastSolutionFlow;
+            setSourceValues(baseData, null, flowPercent);
+            setSinkValues(baseData, null, flowPercent);
         }
         
-        public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
+            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
 
-            lastSolutionFlow = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            source.setSourceFlow(baseData, this, 1.0);
+            finalFlows[name] = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
+            source.setSourceValues(baseData, this, 1.0);
         }
 
-        public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * curPercent;
+            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
 
-            lastSolutionFlow = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            sink.setSinkFlow(baseData, this, 1.0);
+            finalFlows[name] = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
+            sink.setSinkValues(baseData, this, 1.0);
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

@@ -19,8 +19,6 @@ namespace AppriPhysics.Components
         private double flowAllowedPercent = 1.0f;
         private double maxFlow = Double.MaxValue;
 
-        private Dictionary<String, double> finalFlows = new Dictionary<String, double>();
-
         public void setFlowAllowedPercent(double flowAllowedPercent)
         {
             this.flowAllowedPercent = Math.Min(Math.Max(flowAllowedPercent, 0.0), 1.0);               //Clamp the value to be between 0 and 1
@@ -37,9 +35,9 @@ namespace AppriPhysics.Components
             sink.setSource(this);
         }
 
-        private double getLimitScaler(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        private double getLimitScaler(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double limitScaler = Math.Min(curPercent, flowAllowedPercent);
+            double limitScaler = Math.Min(flowPercent, flowAllowedPercent);
             if (baseData.desiredFlowVolume * limitScaler > maxFlow)
             {
                 //Need to cut down even further, so that we don't go over our maximum.
@@ -55,16 +53,16 @@ namespace AppriPhysics.Components
             return limitScaler;
         }
 
-        public override FlowResponseData getSourcePossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double limitScaler = getLimitScaler(baseData, caller, curPercent);
-            FlowResponseData ret = source.getSourcePossibleFlow(baseData, this, limitScaler);
+            double limitScaler = getLimitScaler(baseData, caller, flowPercent);
+            FlowResponseData ret = source.getSourcePossibleValues(baseData, this, limitScaler);
             return ret;
         }
-        public override FlowResponseData getSinkPossibleFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double limitScaler = getLimitScaler(baseData, caller, curPercent);
-            FlowResponseData ret = sink.getSinkPossibleFlow(baseData, this, limitScaler);
+            double limitScaler = getLimitScaler(baseData, caller, flowPercent);
+            FlowResponseData ret = sink.getSinkPossibleValues(baseData, this, limitScaler);
             return ret;
         }
         public override void setSource(FlowComponent source)
@@ -86,26 +84,16 @@ namespace AppriPhysics.Components
             return 0.0;
         }
 
-        public override double getFlow()
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double flow = 0.0;
-            foreach(double iter in finalFlows.Values)
-            {
-                flow += iter;
-            }
-            return flow;
+            finalFlows[baseData.flowPusher.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
+            source.setSourceValues(baseData, this, flowPercent);
         }
 
-        public override void setSourceFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            finalFlows[baseData.flowPusher.name + "_source"] = -1 * baseData.desiredFlowVolume * curPercent;
-            source.setSourceFlow(baseData, this, curPercent);
-        }
-
-        public override void setSinkFlow(FlowCalculationData baseData, FlowComponent caller, double curPercent)
-        {
-            finalFlows[baseData.flowPusher.name + "_sink"] = baseData.desiredFlowVolume * curPercent;
-            sink.setSinkFlow(baseData, this, curPercent);
+            finalFlows[baseData.flowPusher.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
+            sink.setSinkValues(baseData, this, flowPercent);
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
