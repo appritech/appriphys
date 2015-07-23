@@ -33,7 +33,9 @@ namespace AppriPhysics.Components
         private Dictionary<String, double[]> flowPercentageSolutions = new Dictionary<String, double[]>();
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
         private Dictionary<String, bool[]> indexesUsedByPump = new Dictionary<String, bool[]>();
-        
+
+        double[] volumeMap;
+
         public override void connectSelf(Dictionary<string, FlowComponent> components)
         {
             for (int i = 0; i < sinkNames.Length; i++)
@@ -42,14 +44,20 @@ namespace AppriPhysics.Components
                 sink.setSource(this);
                 sinks[i] = sink;
                 if (sinks.Length > 1)
+                {
                     indexByName[sink.name] = i;
+                    volumeMap = new double[sinks.Length];
+                }
             }
             for (int i = 0; i < sourceNames.Length; i++)
             {
                 FlowComponent source = components[sourceNames[i]];
                 sources[i] = source;
                 if (sources.Length > 1)
+                {
                     indexByName[source.name] = i;
+                    volumeMap = new double[sources.Length];
+                }
             }
             //TODO: Add code to validate the configuration, so that we are either 'one to many' or 'many to one'. Never many to many (and never 0 anywhere)
             hasMultipleSinks = sinks.Length > 1;
@@ -235,64 +243,53 @@ namespace AppriPhysics.Components
             return preferredFlowPercent;
         }
 
-        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
+        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink)
         {
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_sink"][i] * flowPercent);
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_sink"][i] * flowVolume);
                 else
-                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_source"][i] * flowPercent);
+                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_source"][i] * flowVolume);
             }
             if (isSink)
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
+                finalFlow = flowVolume;
             else
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
+                finalFlow = flowVolume;
         }
 
-        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
+        public override void resetState()
         {
-            //Here, we need to wait until we get all of our values set, before passing the single value down.
-            if (!baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + name))
+            base.resetState();
+            for(int i = 0; i < volumeMap.Length; i++)
             {
-                double[] toAdd = new double[indexByName.Count];
-                for (int i = 0; i < indexByName.Count; i++)
-                {
-                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
-                        toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
-                    else
-                        toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
-                }
-                    
-                baseData.combinerMap[baseData.flowPusher.name + "_" + name] = toAdd;
+                volumeMap[i] = -1.0;
             }
+        }
 
-            double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
+        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink)
+        {
             int index = indexByName[caller.name];
-            percentMap[index] = flowPercent;
+            volumeMap[index] = flowVolume;   
 
-            //Always set this data, it is for internal use
-            if (isSink)
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
-            else
-                finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
-
-            double percentSum = 0.0;
-            for (int i = 0; i < percentMap.Length; i++)
+            double volumeSum = 0.0;
+            for (int i = 0; i < volumeMap.Length; i++)
             {
-                if (percentMap[i] < 0.0)
+                if (volumeMap[i] < 0.0)
                     return;                //We haven't seen all of the inputs to combine them... 
                 else
-                    percentSum += percentMap[i];
+                    volumeSum += volumeMap[i];
             }
+
+            finalFlow = volumeSum;
 
             //Only pass down data if we have all of the data (return above prevents incomplete data)
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkValues(baseData, this, percentSum);
+                    nodes[i].setSinkValues(baseData, this, volumeSum);
                 else
-                    nodes[i].setSourceValues(baseData, this, percentSum);
+                    nodes[i].setSourceValues(baseData, this, volumeSum);
             }
         }
 
@@ -307,6 +304,8 @@ namespace AppriPhysics.Components
                         toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
                     else
                         toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+
+                    //toAdd[i] = -1.0;
                 }
                 baseData.combinerMap[baseData.flowPusher.name + "_" + name] = toAdd;
             }
@@ -363,20 +362,20 @@ namespace AppriPhysics.Components
                 return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
             if (hasMultipleSinks)
-                setFlowValues(baseData, caller, flowPercent, sinks, true);
+                setFlowValues(baseData, caller, flowVolume, sinks, true);
             else
-                setCombiningFlowValues(baseData, caller, flowPercent, sinks, true);
+                setCombiningFlowValues(baseData, caller, flowVolume, sinks, true);
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
             if (!hasMultipleSinks)
-                setFlowValues(baseData, caller, flowPercent, sources, false);
+                setFlowValues(baseData, caller, flowVolume, sources, false);
             else
-                setCombiningFlowValues(baseData, caller, flowPercent, sources, false);
+                setCombiningFlowValues(baseData, caller, flowVolume, sources, false);
         }
 
         public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)

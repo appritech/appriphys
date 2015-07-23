@@ -55,26 +55,26 @@ namespace AppriPhysics.Components
 
         public void applySolution(FlowCalculationData baseData, double flowPercent)
         {
-            setSourceValues(baseData, null, flowPercent);
-            setSinkValues(baseData, null, flowPercent);
+            setSourceValues(baseData, null, pumpingPercent * mcrRating * flowPercent);
+            setSinkValues(baseData, null, pumpingPercent * mcrRating * flowPercent);
         }
         
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
+            baseData.desiredFlowVolume = flowVolume;
 
-            finalFlows[name] = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            source.setSourceValues(baseData, this, 1.0);
+            finalFlow = flowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
+            source.setSourceValues(baseData, this, flowVolume);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
             baseData.flowPusher = this;
-            baseData.desiredFlowVolume = pumpingPercent * mcrRating * flowPercent;
+            baseData.desiredFlowVolume = flowVolume;
 
-            finalFlows[name] = baseData.desiredFlowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            sink.setSinkValues(baseData, this, 1.0);
+            finalFlow = flowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
+            sink.setSinkValues(baseData, this, flowVolume);
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

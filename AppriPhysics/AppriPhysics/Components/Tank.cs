@@ -75,14 +75,14 @@ namespace AppriPhysics.Components
             this.currentVolume = volume;
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
-            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
+            finalFlow += flowVolume;
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
-            finalFlows[baseData.flowPusher.name + "_" + caller.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
+            finalFlow += flowVolume;
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

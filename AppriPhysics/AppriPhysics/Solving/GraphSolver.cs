@@ -47,6 +47,8 @@ namespace AppriPhysics.Solving
             clearFullState();
             while(!solved)
             {
+                resetPartialState();
+
                 bool possibleSolve = true;
                 attempt++;
                 foreach(Pump p in pumps.Values)
@@ -121,6 +123,14 @@ namespace AppriPhysics.Solving
         }
 
         Dictionary<String, double> pumpModifiers = new Dictionary<string, double>();
+
+        private void resetPartialState()
+        {
+            foreach (FlowComponent iter in components.Values)
+            {
+                iter.resetState();
+            }
+        }
 
         private void clearFullState()
         {

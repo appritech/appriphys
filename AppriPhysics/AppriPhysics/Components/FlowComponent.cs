@@ -15,7 +15,7 @@ namespace AppriPhysics.Components
 
         public String name;
         protected Dictionary<String, FlowResponseData> lastResponses;
-        protected Dictionary<String, double> finalFlows = new Dictionary<String, double>();
+        protected double finalFlow;
 
         public virtual void connectSelf(Dictionary<String, FlowComponent> components)
         {
@@ -28,19 +28,19 @@ namespace AppriPhysics.Components
         public abstract void setSource(FlowComponent source);
         public double getFlow()
         {
-            double flow = 0.0;
-            foreach (double iter in finalFlows.Values)
-            {
-                flow += iter;
-            }
-            return flow;
+            return finalFlow;
+        }
+
+        public virtual void resetState()
+        {
+            finalFlow = 0.0;
         }
 
         public abstract FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
         public abstract FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
 
-        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
-        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent);
+        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume);
+        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume);
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
         public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);
