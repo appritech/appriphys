@@ -23,7 +23,7 @@ namespace UnitTests
             gs.addComponent(t2);
             FlowLine v2 = new FlowLine("V2", "S1");
             gs.addComponent(v2);
-            Junction s1 = new Junction("S1", new string[] { "P1" }, new string[] { "V1", "V2" }, new double[] { 0.5, 0.5 }, new double[] { 0.6, 1.0 });
+            Junction s1 = new Junction("S1", new string[] { "P1" }, new string[] { "V1", "V2" }, "", new double[] { 0.5, 0.5 }, new double[] { 0.6, 1.0 });
             gs.addComponent(s1);
             Pump p1 = new Pump("P1", 200.0, 3.2, "V3");
             gs.addComponent(p1);

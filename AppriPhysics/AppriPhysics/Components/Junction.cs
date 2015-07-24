@@ -8,18 +8,20 @@ namespace AppriPhysics.Components
 {
     public class Junction : FlowComponent
     {
-        public Junction(String name, String[] sinkNames, String[] sourceNames, double[] normalWeights, double[] maxWeights) : base(name)
+        public Junction(String name, String[] sinkNames, String[] sourceNames, String combinerName, double[] normalWeights, double[] maxWeights) : base(name)
         {
             this.sinkNames = sinkNames;
             this.sourceNames = sourceNames;
             this.normalWeights = normalWeights;
             this.maxWeights = maxWeights;
 
+            this.linkedCombinerName = combinerName;
+
             sinks = new FlowComponent[sinkNames.Length];
             sources = new FlowComponent[sourceNames.Length];
         }
         //This is for making a combiner, who doesn't use the weights... at least not for now, but a 3 way valve combiner might need to...
-        public Junction(String name, String[] sinkNames, String[] sourceNames) : this(name, sinkNames, sourceNames, null, null)
+        public Junction(String name, String[] sinkNames, String[] sourceNames) : this(name, sinkNames, sourceNames, "", null, null)
         {
         }
 
@@ -29,6 +31,10 @@ namespace AppriPhysics.Components
         double[] maxWeights;
         FlowComponent[] sinks;
         FlowComponent[] sources;
+        String linkedCombinerName;
+        Junction linkedCombiner = null;
+        Dictionary<String, FlowResponseData> combinerDownstreamValues = new Dictionary<string, FlowResponseData>();
+        public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();
         bool hasMultipleSinks;
         private Dictionary<String, double[]> flowPercentageSolutions = new Dictionary<String, double[]>();
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
@@ -59,6 +65,12 @@ namespace AppriPhysics.Components
                     volumeMap = new double[sources.Length];
                 }
             }
+
+            if(!String.IsNullOrEmpty(linkedCombinerName))
+            {
+                linkedCombiner = (Junction)components[linkedCombinerName];
+            }
+
             //TODO: Add code to validate the configuration, so that we are either 'one to many' or 'many to one'. Never many to many (and never 0 anywhere)
             hasMultipleSinks = sinks.Length > 1;
         }
@@ -78,10 +90,13 @@ namespace AppriPhysics.Components
                 foundNull = false;
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    if(isSink)
-                        responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
-                    else
-                        responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
+                    if (responses[i] == null)
+                    {
+                        if (isSink)
+                            responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
+                        else
+                            responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
+                    }
 
                     if (responses[i] == null)
                         foundNull = true;
@@ -95,9 +110,9 @@ namespace AppriPhysics.Components
                 return null;                //We weren't able to get everything, and this is probably because there is another splitter up stream that will retry us again.
             }
 
-            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name + (isSink ? "_sink" : "_source")))
-                flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[nodes.Length];
-
+            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
+                flowPercentageSolutions[baseData.flowPusher.name] = new double[nodes.Length];
+            
             //If we get here, then we have all the info we should need to solve ourselves.
 
             double desiredPercent = flowPercent;
@@ -108,24 +123,15 @@ namespace AppriPhysics.Components
             double sumOfMaxFlow = 0;
             double currentSum = 0.0;
 
-            bool allSameCombinerOrTank = true;
-            FlowComponent lastCombinerOrTank = null;
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                if (!(lastCombinerOrTank == null || responses[i].lastCombinerOrTank == lastCombinerOrTank))
-                    allSameCombinerOrTank = false;
-                lastCombinerOrTank = responses[i].lastCombinerOrTank;
-            }
-
-            if (allSameCombinerOrTank && lastCombinerOrTank != null)
+            if (linkedCombiner != null)
             {
                 desiredPercent = Math.Min(responses[0].lastCombinerOrTankPercent, flowPercent);            //All are equal... grab first. This is the combiner's maxFlow
 
                 double[] flowPercentToCombiner;
                 //NOTE: Both solutions with both divisors gave the same answer, and I found the bug elsewhere...
                 //TODO: Determing what divisor we actually want to use.
-                if (baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + lastCombinerOrTank.name))
-                    flowPercentToCombiner = baseData.combinerMap[baseData.flowPusher.name + "_" + lastCombinerOrTank.name];
+                if (linkedCombiner.combinerMap.ContainsKey(baseData.flowPusher.name))
+                    flowPercentToCombiner = linkedCombiner.combinerMap[baseData.flowPusher.name];
                 else
                 {
                     flowPercentToCombiner = new double[nodes.Length];
@@ -177,7 +183,7 @@ namespace AppriPhysics.Components
 
                     trueFlowPercent = Math.Min(trueFlowPercent, maxWeights[i]);            //Probably don't need this one, since the one right below is better.
                     trueFlowPercent = Math.Min(trueFlowPercent, maxFlowPercent[i]);
-                    flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][i] = trueFlowPercent;
+                    flowPercentageSolutions[baseData.flowPusher.name][i] = trueFlowPercent;
                     percentToReturn += trueFlowPercent;
                 }
             }
@@ -186,7 +192,7 @@ namespace AppriPhysics.Components
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     double trueFlowPercent = preferredFlowPercent[i];           //It all works out with preferred values.
-                    flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][i] = trueFlowPercent;
+                    flowPercentageSolutions[baseData.flowPusher.name][i] = trueFlowPercent;
                 }
             }
 
@@ -194,9 +200,9 @@ namespace AppriPhysics.Components
             if (percentToReturn != 0.0)
             {
                 for (int i = 0; i < nodes.Length; i++)
-                    flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][i] /= percentToReturn;
+                    flowPercentageSolutions[baseData.flowPusher.name][i] /= percentToReturn;
             }
-
+            
             FlowResponseData ret = new FlowResponseData();
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
@@ -248,9 +254,9 @@ namespace AppriPhysics.Components
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_sink"][i] * flowVolume);
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume);
                 else
-                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name + "_source"][i] * flowVolume);
+                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume);
             }
             if (isSink)
                 finalFlow = flowVolume;
@@ -264,6 +270,17 @@ namespace AppriPhysics.Components
             for(int i = 0; i < volumeMap.Length; i++)
             {
                 volumeMap[i] = -1.0;
+            }
+            combinerDownstreamValues.Clear();
+            foreach(KeyValuePair<String, double[]> iter in combinerMap)
+            {
+                for(int i = 0; i < iter.Value.Length; i++)
+                {
+                    if (!indexesUsedByPump.ContainsKey(iter.Key) || indexesUsedByPump[iter.Key][i])
+                        iter.Value[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                    else
+                        iter.Value[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                }
             }
         }
 
@@ -295,7 +312,7 @@ namespace AppriPhysics.Components
 
         private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
         {
-            if(!baseData.combinerMap.ContainsKey(baseData.flowPusher.name + "_" + name))
+            if(!combinerMap.ContainsKey(baseData.flowPusher.name))
             {
                 double[] toAdd = new double[indexByName.Count];
                 for (int i = 0; i < indexByName.Count; i++)
@@ -304,13 +321,11 @@ namespace AppriPhysics.Components
                         toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
                     else
                         toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
-
-                    //toAdd[i] = -1.0;
                 }
-                baseData.combinerMap[baseData.flowPusher.name + "_" + name] = toAdd;
+                combinerMap[baseData.flowPusher.name] = toAdd;
             }
 
-            double[] percentMap = baseData.combinerMap[baseData.flowPusher.name + "_" + name];
+            double[] percentMap = combinerMap[baseData.flowPusher.name];
             int index = indexByName[caller.name];
             percentMap[index] = flowPercent;
 
@@ -325,12 +340,16 @@ namespace AppriPhysics.Components
             
             if (percentSum > 1.0)
                 percentSum = 1.0;
-            FlowResponseData ret = new FlowResponseData();
-            if (isSink)
-                ret = sinks[0].getSinkPossibleValues(baseData, this, percentSum);
-            else
-                ret = sources[0].getSourcePossibleValues(baseData, this, percentSum);
+            
+            if (!combinerDownstreamValues.ContainsKey(baseData.flowPusher.name))
+            {
+                if (isSink)
+                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum);
+                else
+                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum);
+            }
 
+            FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
             ret.setLastCombinerOrTank(this, ret.flowPercent);
 
             if (percentSum != 0.0)
@@ -339,9 +358,9 @@ namespace AppriPhysics.Components
                 ret.flowVolume *= (percentMap[index] / percentSum);
             }
 
-            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name + (isSink ? "_sink" : "_source")))
-                flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")] = new double[1];
-            flowPercentageSolutions[baseData.flowPusher.name + (isSink ? "_sink" : "_source")][0] = ret.flowPercent;
+            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
+                flowPercentageSolutions[baseData.flowPusher.name] = new double[1];
+            flowPercentageSolutions[baseData.flowPusher.name][0] = ret.flowPercent;
             
             return ret;
         }

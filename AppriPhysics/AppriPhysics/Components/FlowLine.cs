@@ -86,14 +86,12 @@ namespace AppriPhysics.Components
 
         public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
-            //finalFlows[baseData.flowPusher.name + "_source"] = -1 * baseData.desiredFlowVolume * flowPercent;
             finalFlow = flowVolume;
             source.setSourceValues(baseData, this, flowVolume);
         }
 
         public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
         {
-            //finalFlows[baseData.flowPusher.name + "_sink"] = baseData.desiredFlowVolume * flowPercent;
             finalFlow = flowVolume;
             sink.setSinkValues(baseData, this, flowVolume);
         }

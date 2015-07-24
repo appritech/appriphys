@@ -14,7 +14,6 @@ namespace AppriPhysics.Components
         }
 
         public String name;
-        protected Dictionary<String, FlowResponseData> lastResponses;
         protected double finalFlow;
 
         public virtual void connectSelf(Dictionary<String, FlowComponent> components)
@@ -44,7 +43,7 @@ namespace AppriPhysics.Components
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
         public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);
-
+        
         public String solutionString()
         {
             return name + " flow: " + getFlow();

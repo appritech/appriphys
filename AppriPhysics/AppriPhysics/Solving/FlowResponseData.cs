@@ -19,5 +19,15 @@ namespace AppriPhysics.Components
             lastCombinerOrTank = combinerOrTank;
             lastCombinerOrTankPercent = combinerOrTankPercent;            //Current value is the one to stash.
         }
+
+        public FlowResponseData clone()
+        {
+            FlowResponseData ret = new FlowResponseData();
+
+            ret.flowPercent = flowPercent;
+            ret.flowVolume = flowVolume;
+
+            return ret;
+        }
     }
 }
