@@ -31,16 +31,20 @@ namespace AppriPhysics.Components
         double[] maxWeights;
         FlowComponent[] sinks;
         FlowComponent[] sources;
+        bool hasMultipleSinks;
+
         String linkedCombinerName;
         Junction linkedCombiner = null;
-        Dictionary<String, FlowResponseData> combinerDownstreamValues = new Dictionary<string, FlowResponseData>();
+        double lastCombinePercent;
+        
+        Dictionary<String, FlowResponseData> combinerDownstreamValues = new Dictionary<string, FlowResponseData>();         //This is a helpful cache, but not needed (Could ask multiple times)
         public Dictionary<String, double[]> combinerMap = new Dictionary<String, double[]>();
-        bool hasMultipleSinks;
         private Dictionary<String, double[]> flowPercentageSolutions = new Dictionary<String, double[]>();
+
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
         private Dictionary<String, bool[]> indexesUsedByPump = new Dictionary<String, bool[]>();
 
-        double[] volumeMap;
+        double[] setCombiningVolumeMap;
 
         public override void connectSelf(Dictionary<string, FlowComponent> components)
         {
@@ -52,7 +56,7 @@ namespace AppriPhysics.Components
                 if (sinks.Length > 1)
                 {
                     indexByName[sink.name] = i;
-                    volumeMap = new double[sinks.Length];
+                    setCombiningVolumeMap = new double[sinks.Length];
                 }
             }
             for (int i = 0; i < sourceNames.Length; i++)
@@ -62,7 +66,7 @@ namespace AppriPhysics.Components
                 if (sources.Length > 1)
                 {
                     indexByName[source.name] = i;
-                    volumeMap = new double[sources.Length];
+                    setCombiningVolumeMap = new double[sources.Length];
                 }
             }
 
@@ -125,7 +129,7 @@ namespace AppriPhysics.Components
 
             if (linkedCombiner != null)
             {
-                desiredPercent = Math.Min(responses[0].lastCombinerOrTankPercent, flowPercent);            //All are equal... grab first. This is the combiner's maxFlow
+                desiredPercent = Math.Min(linkedCombiner.lastCombinePercent, flowPercent);            //All are equal... grab first. This is the combiner's maxFlow
 
                 double[] flowPercentToCombiner;
                 //NOTE: Both solutions with both divisors gave the same answer, and I found the bug elsewhere...
@@ -267,9 +271,9 @@ namespace AppriPhysics.Components
         public override void resetState()
         {
             base.resetState();
-            for(int i = 0; i < volumeMap.Length; i++)
+            for(int i = 0; i < setCombiningVolumeMap.Length; i++)
             {
-                volumeMap[i] = -1.0;
+                setCombiningVolumeMap[i] = -1.0;
             }
             combinerDownstreamValues.Clear();
             foreach(KeyValuePair<String, double[]> iter in combinerMap)
@@ -287,15 +291,15 @@ namespace AppriPhysics.Components
         private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink)
         {
             int index = indexByName[caller.name];
-            volumeMap[index] = flowVolume;   
+            setCombiningVolumeMap[index] = flowVolume;   
 
             double volumeSum = 0.0;
-            for (int i = 0; i < volumeMap.Length; i++)
+            for (int i = 0; i < setCombiningVolumeMap.Length; i++)
             {
-                if (volumeMap[i] < 0.0)
+                if (setCombiningVolumeMap[i] < 0.0)
                     return;                //We haven't seen all of the inputs to combine them... 
                 else
-                    volumeSum += volumeMap[i];
+                    volumeSum += setCombiningVolumeMap[i];
             }
 
             finalFlow = volumeSum;
@@ -350,7 +354,7 @@ namespace AppriPhysics.Components
             }
 
             FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
-            ret.setLastCombinerOrTank(this, ret.flowPercent);
+            lastCombinePercent = ret.flowPercent;
 
             if (percentSum != 0.0)
             {

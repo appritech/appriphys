@@ -70,11 +70,6 @@ namespace AppriPhysics.Solving
                 if (possibleSolve)          //If we haven't determined our solution to be invalid here, then we have solved it!
                     solved = true;
             }
-
-            //foreach(Pump p in pumps.Values)
-            //{
-            //    applySolution(p);
-            //}
         }
 
         private bool checkAnger()
