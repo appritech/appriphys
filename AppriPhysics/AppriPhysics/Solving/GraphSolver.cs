@@ -78,8 +78,8 @@ namespace AppriPhysics.Solving
             double flowModifier = flowPusherModifiers[p.name].flowPercent;
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
-            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, null, flowModifier, 1.0);       //Only pumps can take null
-            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, flowPusherModifiers[p.name]);           //Only pumps can take null
+            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, flowPusherModifiers[p.name]);
+            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, flowPusherModifiers[p.name]);
 
             if (flowPusherModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
                 return false;

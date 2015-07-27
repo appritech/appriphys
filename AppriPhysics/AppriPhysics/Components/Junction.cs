@@ -85,6 +85,34 @@ namespace AppriPhysics.Components
             //We wire ourselves up completely (inputs and outputs), so don't need to do anything here.
         }
 
+        private double[] modifyPreferenceBasedOnBackPressures(double[] preferredFlowPercent, FlowResponseData[] responses, FlowCalculationData baseData)
+        {
+            if (baseData.pressure == 0.0)
+                return preferredFlowPercent;                //We don't want to have a divide by zero down below.
+
+            //1.0 - backpressure/mcr-pressure seems to be a good starting guess for a scaler. 
+            double sumBeforeModification = 0.0;
+            for(int i = 0; i < preferredFlowPercent.Length; i++)
+            {
+                sumBeforeModification += preferredFlowPercent[i];
+                double modifier = Math.Max(1.0 - (responses[i].backPressure / baseData.pressure), 0.000001);            //Don't let the number go completely to zero.
+                preferredFlowPercent[i] *= modifier;
+            }
+            return PhysTools.normalizePercentArray(preferredFlowPercent, sumBeforeModification);
+        }
+
+        private String arrayToString(double[] array)
+        {
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < array.Length; i++)
+            {
+                sb.Append(array[i].ToString());
+                if(i < array.Length - 1)
+                    sb.Append(", ");
+            }
+            return sb.ToString();
+        }
+
         private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
         {
             FlowResponseData[] responses = new FlowResponseData[nodes.Length];
@@ -154,6 +182,12 @@ namespace AppriPhysics.Components
                     preferredFlowPercent[i] = Math.Min(normalWeights[i], maxFlowPercent[i]) * desiredPercent;
                     tempSum += preferredFlowPercent[i];
                 }
+                
+                bool modifySplitBasedOnBackPressures = true;            //I can foresee this wanting to be an optional parameter, sometimes doing it, and sometimes not.
+                if (modifySplitBasedOnBackPressures)
+                {
+                    preferredFlowPercent = modifyPreferenceBasedOnBackPressures(preferredFlowPercent, responses, baseData);
+                }
 
                 preferredFlowPercent = fixPercents(preferredFlowPercent, maxFlowPercent, desiredPercent);
                 //Normalize preferredFlowPercent (since we know the final flow as desiredPercent, we can safely do so in this case)
@@ -177,8 +211,9 @@ namespace AppriPhysics.Components
                     sumOfMaxFlow += maxFlowPercent[i];
                 }
             }
-            
-            if (currentSum < desiredPercent && sumOfMaxFlow > 0.0)                //sum > 0.0 helps us avoid a divide by 0 below. Also, if we can't push anything, then 0 is the right answer
+
+            //TODO: Find better way to handle this. The 0.000000001 is there to handle rounding errors, when the sum really is the same number, but it rounds to slightly less...
+            if (currentSum < desiredPercent - 0.000000001 && sumOfMaxFlow > 0.0)                //sum > 0.0 helps us avoid a divide by 0 below. Also, if we can't push anything, then 0 is the right answer
             {
                 percentToReturn = 0;
                 for (int i = 0; i < nodes.Length; i++)
@@ -235,9 +270,10 @@ namespace AppriPhysics.Components
                 double goal = desiredPercent;
                 for(int i = 0; i < preferredFlowPercent.Length; i++)
                 {
-                    if(preferredFlowPercent[i] == maxFlowPercent[i])
+                    if(preferredFlowPercent[i] >= maxFlowPercent[i])
                     {
                         //This one is at max, so doesn't count
+                        preferredFlowPercent[i] = maxFlowPercent[i];
                         goal -= preferredFlowPercent[i];
                     }
                     else

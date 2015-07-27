@@ -28,6 +28,8 @@ namespace AppriPhysics
         {
             gs = new GraphSolver();
 
+
+
             //Tanks t1 and t2 are the base sources, and go to v1 and v2 directly (return comes back through v11 and v12)
             gs.addComponent(new Tank("T1", 1000.0, 500.0, new string[] { "V1" }));
             gs.addComponent(new Tank("T2", 1000.0, 500.0, new string[] { "V2" }));
@@ -64,13 +66,15 @@ namespace AppriPhysics
             gs.addComponent(new FlowLine("V11", "T1"));
             gs.addComponent(new FlowLine("V12", "T2"));
 
-
             ((FlowLine)gs.getComponent("V11")).setMaxFlow(150);
             ((FlowLine)gs.getComponent("V12")).setMaxFlow(150);
 
-            ((FlowLine)gs.getComponent("V10")).setFlowAllowedPercent(0.25);
+            //Valve v11 = (Valve) mc.getComponent("V11");
+            //v11.setOpenPercentage(0);
+            ((FlowLine)gs.getComponent("V11")).setFlowAllowedPercent(0.0);
+            ((FlowLine)gs.getComponent("V2")).setFlowAllowedPercent(0.0);
 
-            //((FlowLine)gs.getComponent("V3")).setFlowAllowedPercent(0.75);
+
 
 
             //v1.setFlowAllowedPercent(0.5);

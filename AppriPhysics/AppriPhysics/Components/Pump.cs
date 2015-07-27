@@ -37,21 +37,21 @@ namespace AppriPhysics.Components
 
         private double calculateOutletPressure(FlowPusherModifier modifier)
         {
-            double outletPressure = mcrPressure * pumpingPercent * modifier.minSourceFlowPercent;           //The source is the main thing that can drop the pressure
+            double ret = mcrPressure * pumpingPercent * modifier.minSourceFlowPercent;           //The source is the main thing that can drop the pressure
             if (modifier.minSourceFlowPercent > modifier.minSinkFlowPercent && modifier.minSourceFlowPercent > 0.0)
             {
                 //This is functionality more typical of a centrifugal pump.
                 //If the sink is more clogged than the source, then we can add back some because of back pressure.
-                outletPressure *= (1.0 + 0.20 * (1.0 - modifier.minSinkFlowPercent / modifier.minSourceFlowPercent));                   //Allow up to 20% higher pressure if the output is clogged
+                ret *= (1.0 + 0.20 * (1.0 - modifier.minSinkFlowPercent / modifier.minSourceFlowPercent));                   //Allow up to 20% higher pressure if the output is clogged
             }
-            return outletPressure;
+            return ret;
         }
 
         private double calculateInletPressure(FlowPusherModifier modifier)
         {
-            double inletPressure = -0.2 * pumpingPercent;                           //By default, it will be about -0.2 bar when running at 100% normally
-            inletPressure *= 3.0 * (1.0 - modifier.minSourceFlowPercent);           //If the source is blocked, it can increase by up to 3x
-            return outletPressure;
+            double ret = -0.2 * pumpingPercent;                           //By default, it will be about -0.2 bar when running at 100% normally
+            ret *= (1 + (2.0 * (1.0 - modifier.minSourceFlowPercent)));           //If the source is blocked, it can increase by up to 3x
+            return ret;
         }
 
         public FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)

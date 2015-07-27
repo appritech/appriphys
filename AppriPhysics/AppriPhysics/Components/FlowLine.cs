@@ -71,7 +71,8 @@ namespace AppriPhysics.Components
             }
             else if(flowAllowedPercent < flowPercent)
             {
-                limitedPressurePercent *= flowAllowedPercent / flowPercent;
+                //limitedPressurePercent *= flowAllowedPercent / flowPercent;                   //If flowPercent is included, then splitters with different maxes don't work well...
+                limitedPressurePercent *= flowAllowedPercent;
             }
 
             return limitedPressurePercent;
