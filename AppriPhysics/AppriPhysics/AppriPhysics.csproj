@@ -46,6 +46,7 @@
     <Compile Include="Solving\FlowCalculationData.cs" />
     <Compile Include="Components\FlowComponent.cs" />
     <Compile Include="Components\FlowLine.cs" />
+    <Compile Include="Solving\FlowPusherModifier.cs" />
     <Compile Include="Solving\FlowResponseData.cs" />
     <Compile Include="Components\Junction.cs" />
     <Compile Include="Components\Pump.cs" />

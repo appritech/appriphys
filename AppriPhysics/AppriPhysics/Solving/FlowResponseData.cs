@@ -4,12 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AppriPhysics.Components
+namespace AppriPhysics.Solving
 {
     public class FlowResponseData
     {
+        public FlowResponseData()
+        {
+
+        }
         public double flowPercent;
         public double flowVolume;
+        public double backPressure;
         
         public FlowResponseData clone()
         {
@@ -17,6 +22,7 @@ namespace AppriPhysics.Components
 
             ret.flowPercent = flowPercent;
             ret.flowVolume = flowVolume;
+            ret.backPressure = backPressure;
 
             return ret;
         }

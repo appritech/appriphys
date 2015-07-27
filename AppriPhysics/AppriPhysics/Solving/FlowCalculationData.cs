@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppriPhysics.Components;
 
-namespace AppriPhysics.Components
+namespace AppriPhysics.Solving
 {
     public class FlowCalculationData
     {
@@ -20,5 +21,6 @@ namespace AppriPhysics.Components
         public Dictionary<String, double> angerMap;
 
         public double desiredFlowVolume;
+        public double pressure;
     }
 }

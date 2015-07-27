@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppriPhysics.Solving;
 
 namespace AppriPhysics.Components
 {
@@ -11,6 +12,7 @@ namespace AppriPhysics.Components
         public FlowLine(String name, String sinkName) : base(name)
         {
             this.sinkName = sinkName;
+            normalPressureDropPercent = 0.95;
         }
 
         private String sinkName;
@@ -18,6 +20,7 @@ namespace AppriPhysics.Components
         private FlowComponent sink;
         private double flowAllowedPercent = 1.0f;
         private double maxFlow = Double.MaxValue;
+        private double normalPressureDropPercent;
 
         public void setFlowAllowedPercent(double flowAllowedPercent)
         {
@@ -29,42 +32,74 @@ namespace AppriPhysics.Components
             this.maxFlow = maxFlow;
         }
 
+        public void setNormalPressureDropPercent(double normalPressureDropPercent)
+        {
+            this.normalPressureDropPercent = normalPressureDropPercent;
+        }
+
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
             sink = components[sinkName];
             sink.setSource(this);
         }
 
-        private double getLimitScaler(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        private double getLimitedFlowPercent(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
         {
-            double limitScaler = Math.Min(flowPercent, flowAllowedPercent);
-            if (baseData.desiredFlowVolume * limitScaler > maxFlow)
+            double limitedFlowPercent = Math.Min(flowPercent, flowAllowedPercent);
+            if (baseData.desiredFlowVolume * limitedFlowPercent > maxFlow)
             {
                 //Need to cut down even further, so that we don't go over our maximum.
-                limitScaler = maxFlow / baseData.desiredFlowVolume;
+                limitedFlowPercent = maxFlow / baseData.desiredFlowVolume;
             }
 
             //Apply anger effects, if they are needed.
             if (baseData.angerMap.ContainsKey(name))
             {
-                limitScaler *= baseData.angerMap[name];
+                limitedFlowPercent *= baseData.angerMap[name];
             }
 
-            return limitScaler;
+            return limitedFlowPercent;
         }
 
-        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        private double getLimitedPressurePercent(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
-            double limitScaler = getLimitScaler(baseData, caller, flowPercent);
-            FlowResponseData ret = source.getSourcePossibleValues(baseData, this, limitScaler);
+            double limitedPressurePercent = pressurePercent * normalPressureDropPercent;
+
+            if(flowPercent == 0.0)
+            {
+                limitedPressurePercent = 0.0;
+            }
+            else if(flowAllowedPercent < flowPercent)
+            {
+                limitedPressurePercent *= flowAllowedPercent / flowPercent;
+            }
+
+            return limitedPressurePercent;
+        }
+
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
+        {
+            double limitedFlowPercent = getLimitedFlowPercent(baseData, caller, flowPercent);
+            double limitedPressurePercent = getLimitedPressurePercent(baseData, caller, flowPercent, pressurePercent);
+            FlowResponseData ret = source.getSourcePossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
+            if (ret != null)
+            {
+                setPressuresForSourceSide(baseData.pressure, ret.backPressure, limitedPressurePercent, pressurePercent);
+            }
             return ret;
         }
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
-            double limitScaler = getLimitScaler(baseData, caller, flowPercent);
-            FlowResponseData ret = sink.getSinkPossibleValues(baseData, this, limitScaler);
+            double limitedFlowPercent = getLimitedFlowPercent(baseData, caller, flowPercent);
+            double limitedPressurePercent = getLimitedPressurePercent(baseData, caller, flowPercent, pressurePercent);
+            FlowResponseData ret = sink.getSinkPossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
+            if (ret != null)
+            {
+                setPressuresForSinkSide(baseData.pressure, ret.backPressure, pressurePercent, limitedPressurePercent);
+            }
             return ret;
         }
+
         public override void setSource(FlowComponent source)
         {
             this.source = source;

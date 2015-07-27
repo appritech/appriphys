@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppriPhysics.Solving;
 
 namespace AppriPhysics.Components
 {
@@ -33,34 +34,36 @@ namespace AppriPhysics.Components
             }
         }
 
-        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             FlowResponseData ret = new FlowResponseData();
             if(currentVolume > 0.0)
             {
                 ret.flowPercent = flowPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
-                ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             }
             else
             {
                 ret.flowPercent = 0.0f;
-                ret.flowVolume = 0.0f;
             }
+            ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
+            ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
+            outletPressure = ret.backPressure;
             return ret;
         }
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             FlowResponseData ret = new FlowResponseData();
             if (currentVolume < double.MaxValue)             //TODO: Make it so that tanks can't overflow, especially sealed tanks... Right now, it will pretty much always accept any flow that we want to put into it...
             {
                 ret.flowPercent = flowPercent;           //Allow everything that they are asking for, since we don't do restrictions inside the tank.
-                ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             }
             else
             {
                 ret.flowPercent = 0.0f;
-                ret.flowVolume = 0.0f;
             }
+            ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
+            ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
+            outletPressure = ret.backPressure;
             return ret;
         }
         public override void setSource(FlowComponent source)

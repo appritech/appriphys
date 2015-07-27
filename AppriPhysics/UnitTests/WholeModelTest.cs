@@ -28,8 +28,8 @@ namespace UnitTests
             gs.addComponent(new Junction("S1", new String[] { "V3", "V4" }, new string[] { "C1" }, "", new double[] { 0.5, 0.5 }, new double[] { 1.0, 1.0 }));
             gs.addComponent(new FlowLine("V3", "P1"));
             gs.addComponent(new FlowLine("V4", "P2"));
-            gs.addComponent(new Pump("P1", 100, 100, "V5"));
-            gs.addComponent(new Pump("P2", 100, 100, "V6"));
+            gs.addComponent(new Pump("P1", 100, 3.2, "V5"));
+            gs.addComponent(new Pump("P2", 100, 3.2, "V6"));
             gs.addComponent(new FlowLine("V5", "C2"));
             gs.addComponent(new FlowLine("V6", "C2"));
 

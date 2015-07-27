@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AppriPhysics.Solving;
 
 namespace AppriPhysics.Components
 {
@@ -84,10 +85,11 @@ namespace AppriPhysics.Components
             //We wire ourselves up completely (inputs and outputs), so don't need to do anything here.
         }
 
-        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isSink)
+        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
         {
             FlowResponseData[] responses = new FlowResponseData[nodes.Length];
             bool foundNull = false;
+            double maxBackPressure = 0.0;
             for (int attempt = 0; attempt < 2; attempt++)
             {
                 //Most of the time, we will need to ask twice, because some will be null the first time.
@@ -97,13 +99,15 @@ namespace AppriPhysics.Components
                     if (responses[i] == null)
                     {
                         if (isSink)
-                            responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
+                            responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]), pressurePercent);
                         else
-                            responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]));
+                            responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]), pressurePercent);
                     }
 
                     if (responses[i] == null)
                         foundNull = true;
+                    else if (responses[i].backPressure > maxBackPressure)
+                        maxBackPressure = responses[i].backPressure;
                 }
 
                 if (!foundNull)
@@ -210,7 +214,17 @@ namespace AppriPhysics.Components
             FlowResponseData ret = new FlowResponseData();
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
+            ret.backPressure = maxBackPressure;
+            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
             return ret;
+        }
+
+        private void setPressures(double pumpPressure, double backPressure, double pressurePercent, bool isSink)
+        {
+            if (isSink)
+                setPressuresForSinkSide(pumpPressure, backPressure, pressurePercent, pressurePercent);
+            else
+                setPressuresForSourceSide(pumpPressure, backPressure, pressurePercent, pressurePercent);
         }
 
         private double[] fixPercents(double[] preferredFlowPercent, double[] maxFlowPercent, double desiredPercent)
@@ -314,7 +328,7 @@ namespace AppriPhysics.Components
             }
         }
 
-        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink)
+        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
         {
             if(!combinerMap.ContainsKey(baseData.flowPusher.name))
             {
@@ -348,9 +362,9 @@ namespace AppriPhysics.Components
             if (!combinerDownstreamValues.ContainsKey(baseData.flowPusher.name))
             {
                 if (isSink)
-                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum);
+                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
                 else
-                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum);
+                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
             }
 
             FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
@@ -365,24 +379,26 @@ namespace AppriPhysics.Components
             if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
                 flowPercentageSolutions[baseData.flowPusher.name] = new double[1];
             flowPercentageSolutions[baseData.flowPusher.name][0] = ret.flowPercent;
-            
+
+            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
+
             return ret;
         }
 
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             if (hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, flowPercent, sinks, true);
+                return calculateSplittingFunctionality(baseData, flowPercent, sinks, true, pressurePercent);
             else
-                return calculateCombiningFunctionality(baseData, caller, flowPercent, sources, true);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, sources, true, pressurePercent);
         }
 
-        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
+        public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             if (!hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, flowPercent, sources, false);
+                return calculateSplittingFunctionality(baseData, flowPercent, sources, false, pressurePercent);
             else
-                return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false, pressurePercent);
         }
 
         public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)

@@ -37,6 +37,7 @@ namespace AppriPhysics.Solving
                 baseData.flowPusher = iter;
                 iter.exploreSinkGraph(baseData, null);
                 iter.exploreSourceGraph(baseData, null);
+                flowPusherModifiers[iter.name] = new FlowPusherModifier();
             }
         }
 
@@ -60,7 +61,7 @@ namespace AppriPhysics.Solving
                 //Right now, we have to apply the solution each time to see if we have anger... need to rethink the algorithm...
                 foreach (Pump p in pumps.Values)
                 {
-                    applySolution(p);
+                    p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name]);
                 }
 
                 bool hasAnger = checkAnger();
@@ -70,6 +71,37 @@ namespace AppriPhysics.Solving
                 if (possibleSolve)          //If we haven't determined our solution to be invalid here, then we have solved it!
                     solved = true;
             }
+        }
+
+        private bool attemptSolve(Pump p, int attempt)
+        {
+            double flowModifier = flowPusherModifiers[p.name].flowPercent;
+
+            FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
+            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, null, flowModifier, 1.0);       //Only pumps can take null
+            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, flowPusherModifiers[p.name]);           //Only pumps can take null
+
+            if (flowPusherModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
+                return false;
+
+            return true;
+        }
+        
+        Dictionary<String, FlowPusherModifier> flowPusherModifiers = new Dictionary<string, FlowPusherModifier>();
+
+        private void resetPartialState()
+        {
+            foreach (FlowComponent iter in components.Values)
+            {
+                iter.resetState();
+            }
+        }
+
+        private void clearFullState()
+        {
+            foreach (FlowPusherModifier iter in flowPusherModifiers.Values)
+                iter.clearState();
+            angerMap.Clear();
         }
 
         private bool checkAnger()
@@ -108,52 +140,6 @@ namespace AppriPhysics.Solving
             return false;           //No anger found
         }
 
-        private void applySolution(Pump p)
-        {
-            double modifier = 1.0f;
-            if (pumpModifiers.ContainsKey(p.name))
-                modifier = pumpModifiers[p.name];
-
-            p.applySolution(new FlowCalculationData(p, angerMap, 0), modifier);
-        }
-
-        Dictionary<String, double> pumpModifiers = new Dictionary<string, double>();
-
-        private void resetPartialState()
-        {
-            foreach (FlowComponent iter in components.Values)
-            {
-                iter.resetState();
-            }
-        }
-
-        private void clearFullState()
-        {
-            pumpModifiers.Clear();
-            angerMap.Clear();
-        }
-
-        private bool attemptSolve(Pump p, int attempt)
-        {
-            double modifier = 1.0f;
-            if (pumpModifiers.ContainsKey(p.name))
-                modifier = pumpModifiers[p.name];
-
-            FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
-            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, null, modifier);       //Only pumps can take null
-            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, null, modifier);           //Only pumps can take null
-            double minAbility = Math.Min(sourceAbility.flowPercent, sinkAbility.flowPercent);
-            if(minAbility < modifier)
-            {
-                pumpModifiers[p.name] = minAbility;
-                return false;
-            }
-            else
-            {
-                return true;                //This means we actually have solved something...
-            }
-        }
-        
         public void printSolution()
         {
             foreach(FlowComponent iter in components.Values)
