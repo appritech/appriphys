@@ -120,16 +120,16 @@ namespace AppriPhysics.Components
             return 0.0;
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-            source.setSourceValues(baseData, this, flowVolume);
+            source.setSourceValues(baseData, this, flowVolume, lastTime);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-            sink.setSinkValues(baseData, this, flowVolume);
+            sink.setSinkValues(baseData, this, flowVolume, lastTime);
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

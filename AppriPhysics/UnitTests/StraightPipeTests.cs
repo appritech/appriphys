@@ -35,7 +35,7 @@ namespace UnitTests
         {
             gs.solveMimic();
             double solutionFlow = 100.0;          //Single flow through whole system
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "P1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
@@ -49,7 +49,7 @@ namespace UnitTests
             v2.setFlowAllowedPercent(0.5);
             gs.solveMimic();
             double solutionFlow = 50.0;          //Single flow through whole system
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "P1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
@@ -65,7 +65,7 @@ namespace UnitTests
             v2.setFlowAllowedPercent(0.5);
             gs.solveMimic();
             double solutionFlow = 25.0;          //Single flow through whole system
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "P1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
@@ -79,7 +79,7 @@ namespace UnitTests
             v2.setFlowAllowedPercent(0.0);
             gs.solveMimic();
             double solutionFlow = 0.0;          //Single flow through whole system
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "P1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
@@ -93,7 +93,7 @@ namespace UnitTests
             t1.setCurrentVolume(0.0);
             gs.solveMimic();
             double solutionFlow = 0.0;          //Single flow through whole system
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "P1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);

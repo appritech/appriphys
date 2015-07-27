@@ -24,5 +24,7 @@ namespace AppriPhysics.Solving
             }
             return array;
         }
+
+        public static float timeStep = 0.1f;                     //For now, have a static rate of 10 updates per second. All FlowComponents read from here, so this can change, even dynamically.
     }
 }

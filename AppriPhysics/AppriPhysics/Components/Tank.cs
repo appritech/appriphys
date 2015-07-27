@@ -76,14 +76,23 @@ namespace AppriPhysics.Components
             this.currentVolume = volume;
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
-            finalFlow += flowVolume;
+            finalFlow -= flowVolume;
+            if(lastTime)
+            {
+                currentVolume -= flowVolume * PhysTools.timeStep;
+            }
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow += flowVolume;
+            if(lastTime)
+            {
+                currentVolume += flowVolume * PhysTools.timeStep;
+                //TODO: Effect of this particular fluid flow on our temperature.
+            }
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

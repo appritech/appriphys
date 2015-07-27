@@ -112,28 +112,28 @@ namespace AppriPhysics.Components
             this.source = source;
         }
 
-        public void applySolution(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public void applySolution(FlowCalculationData baseData, FlowPusherModifier modifier, bool lastTime)
         {
-            setSourceValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent);
-            setSinkValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent);
+            setSourceValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
+            setSinkValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
         }
         
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = flowVolume;
 
             finalFlow = flowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            source.setSourceValues(baseData, this, flowVolume);
+            source.setSourceValues(baseData, this, flowVolume, lastTime);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = flowVolume;
 
             finalFlow = flowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            sink.setSinkValues(baseData, this, flowVolume);
+            sink.setSinkValues(baseData, this, flowVolume, lastTime);
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

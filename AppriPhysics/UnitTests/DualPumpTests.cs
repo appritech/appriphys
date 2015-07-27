@@ -50,7 +50,7 @@ namespace UnitTests
             t1.setCurrentVolume(0.0);
             gs.solveMimic();
             double solutionFlow = 0.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
@@ -73,7 +73,7 @@ namespace UnitTests
             v5.setMaxFlow(100.0);
             gs.solveMimic();
             double solutionFlow = 85.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
@@ -96,7 +96,7 @@ namespace UnitTests
             v5.setMaxFlow(50.0);
             gs.solveMimic();
             double solutionFlow = 25.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
@@ -117,7 +117,7 @@ namespace UnitTests
             v5.setMaxFlow(50.0);
             gs.solveMimic();
             double solutionFlow = 50.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
@@ -138,7 +138,7 @@ namespace UnitTests
             v5.setFlowAllowedPercent(0.5);
             gs.solveMimic();
             double solutionFlow = 100.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
@@ -157,7 +157,7 @@ namespace UnitTests
         {
             gs.solveMimic();
             double solutionFlow = 200.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
             TestingTools.verifyFlow(gs, "V0", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);

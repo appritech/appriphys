@@ -303,14 +303,14 @@ namespace AppriPhysics.Components
             return preferredFlowPercent;
         }
 
-        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink)
+        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
         {
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume);
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
                 else
-                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume);
+                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
             }
             if (isSink)
                 finalFlow = flowVolume;
@@ -338,7 +338,7 @@ namespace AppriPhysics.Components
             }
         }
 
-        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink)
+        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
         {
             int index = indexByName[caller.name];
             setCombiningVolumeMap[index] = flowVolume;   
@@ -358,9 +358,9 @@ namespace AppriPhysics.Components
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (isSink)
-                    nodes[i].setSinkValues(baseData, this, volumeSum);
+                    nodes[i].setSinkValues(baseData, this, volumeSum, lastTime);
                 else
-                    nodes[i].setSourceValues(baseData, this, volumeSum);
+                    nodes[i].setSourceValues(baseData, this, volumeSum, lastTime);
             }
         }
 
@@ -437,20 +437,20 @@ namespace AppriPhysics.Components
                 return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false, pressurePercent);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             if (hasMultipleSinks)
-                setFlowValues(baseData, caller, flowVolume, sinks, true);
+                setFlowValues(baseData, caller, flowVolume, sinks, true, lastTime);
             else
-                setCombiningFlowValues(baseData, caller, flowVolume, sinks, true);
+                setCombiningFlowValues(baseData, caller, flowVolume, sinks, true, lastTime);
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume)
+        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             if (!hasMultipleSinks)
-                setFlowValues(baseData, caller, flowVolume, sources, false);
+                setFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
             else
-                setCombiningFlowValues(baseData, caller, flowVolume, sources, false);
+                setCombiningFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
         }
 
         public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)

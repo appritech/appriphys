@@ -43,8 +43,8 @@ namespace AppriPhysics.Components
         public abstract FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent,double pressurePercent);
         public abstract FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent);
 
-        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume);
-        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume);
+        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
+        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
         public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);

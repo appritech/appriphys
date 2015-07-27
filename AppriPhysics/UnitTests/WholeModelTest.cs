@@ -66,10 +66,8 @@ namespace UnitTests
             ((FlowLine)gs.getComponent("V7")).setFlowAllowedPercent(0.0);
             gs.solveMimic();
             double solutionFlow = 100.0;          //Basic flow through system, but the branches should share half
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
-            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
+            TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -104,7 +102,7 @@ namespace UnitTests
             ((FlowLine)gs.getComponent("V2")).setFlowAllowedPercent(0.0);
             gs.solveMimic();
             double solutionFlow = 150.0;          //Basic flow through system, but the branches should share half
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);   //Transferring from t1 to t2.
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);   //Transferring from t1 to t2.
             TestingTools.verifyFlow(gs, "T2", solutionFlow);
             TestingTools.verifyFlow(gs, "V1", solutionFlow);
             TestingTools.verifyFlow(gs, "V2", solutionFlow * 0.0);
@@ -175,10 +173,8 @@ namespace UnitTests
             ((Tank)gs.getComponent("T1")).setCurrentVolume(0.0);
             gs.solveMimic();
             double solutionFlow = 150.0;          //Basic flow through system, but the branches should share half
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow / 2.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "T1", solutionFlow / 2.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            TestingTools.verifyFlow(gs, "T2", solutionFlow / 2.0 * 3.0);
+            TestingTools.verifyFlow(gs, "T2", -solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -210,10 +206,8 @@ namespace UnitTests
             ((Tank)gs.getComponent("T1")).setCurrentVolume(0.0);
             gs.solveMimic();
             double solutionFlow = 200.0;          //Basic flow through system, but the branches should share half
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow / 2.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "T1", solutionFlow / 2.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            TestingTools.verifyFlow(gs, "T2", solutionFlow / 2.0 * 3.0);
+            TestingTools.verifyFlow(gs, "T2", -solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -248,10 +242,8 @@ namespace UnitTests
             ((FlowLine)gs.getComponent("V12")).setFlowAllowedPercent(0.25);
             gs.solveMimic();
             double solutionFlow = 100.0;          //Basic flow through system, but the branches should share half
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
-            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
+            TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -286,10 +278,8 @@ namespace UnitTests
             double solutionFlow = 150.0;          //Basic flow through system, but the branches should share half
             double flow1 = 50.0;
             double flow2 = 100.0;
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
-            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
+            TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -324,10 +314,8 @@ namespace UnitTests
             double solutionFlow = 175.0;          //Basic flow through system, but the branches should share half
             double flow1 = 75.0;
             double flow2 = 100.0;
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
-            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
+            TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);
@@ -358,10 +346,8 @@ namespace UnitTests
 
             gs.solveMimic();
             double solutionFlow = 200.0;          //Basic flow through system, but the branches should share half
-            //TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
-            //TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
-            TestingTools.verifyFlow(gs, "T1", solutionFlow);
-            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T1", solutionFlow * 0.0);             //Zero flow in tanks, because we suck out the same that we put back in.
+            TestingTools.verifyFlow(gs, "T2", solutionFlow * 0.0);
             TestingTools.verifyFlow(gs, "V1", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "V2", solutionFlow / 2.0);
             TestingTools.verifyFlow(gs, "C1", solutionFlow);

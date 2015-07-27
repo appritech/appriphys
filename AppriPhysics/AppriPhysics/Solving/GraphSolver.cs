@@ -61,7 +61,7 @@ namespace AppriPhysics.Solving
                 //Right now, we have to apply the solution each time to see if we have anger... need to rethink the algorithm...
                 foreach (Pump p in pumps.Values)
                 {
-                    p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name]);
+                    p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], false);
                 }
 
                 bool hasAnger = checkAnger();
@@ -70,6 +70,13 @@ namespace AppriPhysics.Solving
 
                 if (possibleSolve)          //If we haven't determined our solution to be invalid here, then we have solved it!
                     solved = true;
+            }
+
+            resetPartialState();
+            //Now that we have a final solution, apply the values and let the temperatures and changing of tank levels, etc happen.
+            foreach (Pump p in pumps.Values)
+            {
+                p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], true);
             }
         }
 
