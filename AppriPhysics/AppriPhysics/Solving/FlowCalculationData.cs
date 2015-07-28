@@ -23,5 +23,12 @@ namespace AppriPhysics.Solving
         public double desiredFlowVolume;
         public double pressure;
         public Dictionary<FluidType, double> fluidTypeMap;
+        public double temperature;
+
+        public void applySourceResponse(SettingResponseData sourceResponse)
+        {
+            this.fluidTypeMap = sourceResponse.fluidTypeMap;
+            this.temperature = sourceResponse.temperature;
+        }
     }
 }

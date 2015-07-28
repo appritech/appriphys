@@ -69,12 +69,6 @@ namespace AppriPhysics
             gs.addComponent(new FlowLine("V11", "T1"));
             gs.addComponent(new FlowLine("V12", "T2"));
 
-            ((FlowLine)gs.getComponent("V11")).setMaxFlow(150);
-            ((FlowLine)gs.getComponent("V12")).setMaxFlow(150);
-
-            ((FlowLine)gs.getComponent("V2")).setMaxFlow(150);
-
-            ((Tank)gs.getComponent("T1")).setCurrentVolume(0.0);
 
             //v2.setFlowAllowedPercent(0.25);
             //v4.setFlowAllowedPercent(0.2);

@@ -8,8 +8,12 @@ namespace AppriPhysics.Solving
 {
     public class SettingResponseData
     {
+        public SettingResponseData()
+        {
+
+        }
         public double flowVolume;
         public Dictionary<FluidType, double> fluidTypeMap;
-        //TODO: Add temperature here
+        public double temperature;                          //TODO: Should this be an offset or absolute? I wanted offset, but what if one piping diagram spans multiple zones?
     }
 }

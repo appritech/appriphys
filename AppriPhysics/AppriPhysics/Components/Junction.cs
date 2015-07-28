@@ -272,7 +272,63 @@ namespace AppriPhysics.Components
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
             ret.backPressure = maxBackPressure;
-            ret.fluidTypeMap = PhysTools.mixFluids(responses, flowPercentageSolutions[baseData.flowPusher.name]);
+            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
+
+            return ret;
+        }
+
+        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
+        {
+            if (!combinerMap.ContainsKey(baseData.flowPusher.name))
+            {
+                double[] toAdd = new double[indexByName.Count];
+                for (int i = 0; i < indexByName.Count; i++)
+                {
+                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
+                        toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                    else
+                        toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                }
+                combinerMap[baseData.flowPusher.name] = toAdd;
+            }
+
+            double[] percentMap = combinerMap[baseData.flowPusher.name];
+            int index = indexByName[caller.name];
+            percentMap[index] = flowPercent;
+
+            double percentSum = 0.0;
+            for (int i = 0; i < percentMap.Length; i++)
+            {
+                if (percentMap[i] < 0.0)
+                    return null;                //We haven't seen all of the inputs to combine them... thus, return null until we do see them all.
+                else
+                    percentSum += percentMap[i];
+            }
+
+            if (percentSum > 1.0)
+                percentSum = 1.0;
+
+            if (!combinerDownstreamValues.ContainsKey(baseData.flowPusher.name))
+            {
+                if (isSink)
+                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
+                else
+                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
+            }
+
+            FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
+            lastCombinePercent = ret.flowPercent;
+
+            if (percentSum != 0.0)
+            {
+                ret.flowPercent *= (percentMap[index] / percentSum);             //The divide here is to normalize it.
+                ret.flowVolume *= (percentMap[index] / percentSum);
+            }
+
+            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
+                flowPercentageSolutions[baseData.flowPusher.name] = new double[1];
+            flowPercentageSolutions[baseData.flowPusher.name][0] = ret.flowPercent;
+
             setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
 
             return ret;
@@ -338,6 +394,8 @@ namespace AppriPhysics.Components
                 finalFlow = flowVolume;
 
                 lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                inletTemperature = baseData.temperature;
+                outletTemperature = baseData.temperature;
                 
                 return null;
             }
@@ -364,11 +422,13 @@ namespace AppriPhysics.Components
                     return null;
 
                 finalFlow = flowVolume;
-                SettingResponseData ret = new SettingResponseData();
+                SettingResponseData ret = PhysTools.mixFluidPercentsAndTemperatures(responses, volumes);
                 ret.flowVolume = flowVolume;
-                ret.fluidTypeMap = PhysTools.mixFluids(responses, volumes);
+                //ret.fluidTypeMap = PhysTools.mixFluids(responses, volumes);
 
                 lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                inletTemperature = ret.temperature;
+                outletTemperature = ret.temperature;
 
                 return ret;
             }
@@ -398,7 +458,9 @@ namespace AppriPhysics.Components
                 }
 
                 lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
-                
+                inletTemperature = baseData.temperature;
+                outletTemperature = baseData.temperature;
+
                 return null;
             }
             else
@@ -411,68 +473,14 @@ namespace AppriPhysics.Components
                 SettingResponseData ret = new SettingResponseData();
                 ret.flowVolume = volumeSum;
                 ret.fluidTypeMap = setterDownstreamValue.fluidTypeMap;
+                ret.temperature = setterDownstreamValue.temperature;
 
                 lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
-                
+                inletTemperature = ret.temperature;
+                outletTemperature = ret.temperature;
+
                 return ret;
             }
-        }
-
-        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
-        {
-            if(!combinerMap.ContainsKey(baseData.flowPusher.name))
-            {
-                double[] toAdd = new double[indexByName.Count];
-                for (int i = 0; i < indexByName.Count; i++)
-                {
-                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
-                        toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
-                    else
-                        toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
-                }
-                combinerMap[baseData.flowPusher.name] = toAdd;
-            }
-
-            double[] percentMap = combinerMap[baseData.flowPusher.name];
-            int index = indexByName[caller.name];
-            percentMap[index] = flowPercent;
-
-            double percentSum = 0.0;
-            for(int i = 0; i < percentMap.Length; i++)
-            {
-                if (percentMap[i] < 0.0)
-                    return null;                //We haven't seen all of the inputs to combine them... thus, return null until we do see them all.
-                else
-                    percentSum += percentMap[i];
-            }
-            
-            if (percentSum > 1.0)
-                percentSum = 1.0;
-            
-            if (!combinerDownstreamValues.ContainsKey(baseData.flowPusher.name))
-            {
-                if (isSink)
-                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
-                else
-                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
-            }
-
-            FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
-            lastCombinePercent = ret.flowPercent;
-
-            if (percentSum != 0.0)
-            {
-                ret.flowPercent *= (percentMap[index] / percentSum);             //The divide here is to normalize it.
-                ret.flowVolume *= (percentMap[index] / percentSum);
-            }
-
-            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
-                flowPercentageSolutions[baseData.flowPusher.name] = new double[1];
-            flowPercentageSolutions[baseData.flowPusher.name][0] = ret.flowPercent;
-
-            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
-
-            return ret;
         }
 
         public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)

@@ -130,8 +130,7 @@ namespace AppriPhysics.Components
             SettingResponseData sourceResponse = setSourceValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
             if (sourceResponse != null)
             {
-                baseData.fluidTypeMap = sourceResponse.fluidTypeMap;
-                //TODO: Copy temperature data from source into what we pass down to our sinks.
+                baseData.applySourceResponse(sourceResponse);
                 setSinkValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
                 solutionApplied = true;
             }
@@ -150,7 +149,8 @@ namespace AppriPhysics.Components
             if (ret != null)
             {
                 lastFluidTypeMap = ret.fluidTypeMap;
-                //TODO: Also need to have the temperature data...
+                inletTemperature = ret.temperature;
+                outletTemperature = ret.temperature;
             }
             return ret;
         }

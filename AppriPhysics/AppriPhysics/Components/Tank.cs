@@ -16,6 +16,7 @@ namespace AppriPhysics.Components
             this.capacity = capacity;
             this.normalizedVolumeMap = normalizedVolumeMap;
             this.currentVolume = currentVolume;
+            this.currentTemperature = 20.0;                 //20 degrees is a good round temperature for starters.
         }
 
         private String[] sinkNames;
@@ -23,6 +24,7 @@ namespace AppriPhysics.Components
         private double capacity;
         private double currentVolume;
         private Dictionary<FluidType, double> normalizedVolumeMap;
+        public double currentTemperature;
 
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
@@ -91,6 +93,11 @@ namespace AppriPhysics.Components
 
             ret.flowVolume = flowVolume;
             ret.fluidTypeMap = normalizedVolumeMap;
+            ret.temperature = currentTemperature;
+
+            inletTemperature = currentTemperature;
+            outletTemperature = currentTemperature;
+
             return ret;
         }
 
@@ -102,6 +109,9 @@ namespace AppriPhysics.Components
                 currentVolume += flowVolume * PhysTools.timeStep;
                 //TODO: Effect of this particular fluid flow on our temperature.
             }
+
+            inletTemperature = currentTemperature;
+            outletTemperature = currentTemperature;
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

@@ -14,9 +14,11 @@ namespace UnitTests
             Assert.AreEqual(flow, componentFlow, 0.00001);
         }
 
-        public static void verifyMixture(GraphSolver gs, string name, Dictionary<FluidType, double> truthMap)
+        public static void verifyMixtureAndTemperature(GraphSolver gs, string name, Dictionary<FluidType, double> truthMap, double temp)
         {
             Dictionary<FluidType, double> componentMap = gs.getComponent(name).getLastFluidTypeMap();
+            double componentTemp = gs.getComponent(name).getInletTemperature();
+            Assert.AreEqual(temp, componentTemp, 0.00001);
             foreach(KeyValuePair<FluidType, double> iter in truthMap)
             {
                 Assert.AreEqual(true, componentMap.ContainsKey(iter.Key));

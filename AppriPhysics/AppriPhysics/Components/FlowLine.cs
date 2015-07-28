@@ -124,11 +124,12 @@ namespace AppriPhysics.Components
         public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-
             SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
             if (ret != null)
             {
                 lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                inletTemperature = ret.temperature;
+                outletTemperature = ret.temperature;
             }
             return ret;
         }
@@ -138,6 +139,8 @@ namespace AppriPhysics.Components
             finalFlow = flowVolume;
             sink.setSinkValues(baseData, this, flowVolume, lastTime);
             lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+            inletTemperature = baseData.temperature;
+            outletTemperature = baseData.temperature;
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

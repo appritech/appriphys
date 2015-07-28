@@ -36,47 +36,19 @@ namespace AppriPhysics.Solving
         {
             public static Dictionary<TKey, TValue> cloneDictionary(Dictionary<TKey, TValue> toClone)
             {
+                if (toClone == null)
+                    return null;
                 return toClone.ToDictionary(entry => entry.Key, entry => entry.Value); ;
             }
         }
 
-        public static Dictionary<FluidType, double> mixFluids(FlowResponseData[] responses, double[] splitValues)
+        public static SettingResponseData mixFluidPercentsAndTemperatures(SettingResponseData[] responses, double[] splitValues)
         {
-            Dictionary<FluidType, double> ret = new Dictionary<FluidType, double>();
-            double totalSum = 0.0;
-
-            for(int i = 0; i < responses.Length; i++)
-            {
-                foreach(KeyValuePair<FluidType, double> iter in responses[i].fluidTypeMap)
-                {
-                    if (splitValues[i] == 0.0)              //TODO: Make sure we don't crash and burn if all of the percentages are 0....
-                        continue;
-
-                    if (!ret.ContainsKey(iter.Key))
-                        ret.Add(iter.Key, 0.0);
-                    double amountToAdd = iter.Value * splitValues[i];
-                    ret[iter.Key] += amountToAdd;
-                    totalSum += amountToAdd;
-                }
-            }
-
-            //Normalize oursleves if needed
-            if(totalSum != 1.0 && totalSum != 0.0)          //1 means we are already normal, 0 would cause NAN.
-            {
-                //Need to go through and re-normalize
-                foreach (FluidType key in ret.Keys.ToList())                //The ToList creates a copy of the keys, which makes it not throw an exception.
-                {
-                    ret[key] /= totalSum;
-                }
-            }
-
-            return ret;
-        }
-
-        public static Dictionary<FluidType, double> mixFluids(SettingResponseData[] responses, double[] splitValues)
-        {
-            Dictionary<FluidType, double> ret = new Dictionary<FluidType, double>();
-            double totalSum = 0.0;
+            SettingResponseData ret = new SettingResponseData();
+            Dictionary<FluidType, double> fluidTypeMap = new Dictionary<FluidType, double>();
+            double fluidTypeSum = 0.0;
+            double temperature = 0.0;
+            double tempDivisor = 0.0;
 
             for (int i = 0; i < responses.Length; i++)
             {
@@ -85,24 +57,32 @@ namespace AppriPhysics.Solving
                     if (splitValues[i] == 0.0)              //TODO: Make sure we don't crash and burn if all of the percentages are 0....
                         continue;
 
-                    if (!ret.ContainsKey(iter.Key))
-                        ret.Add(iter.Key, 0.0);
+                    if (!fluidTypeMap.ContainsKey(iter.Key))
+                        fluidTypeMap.Add(iter.Key, 0.0);
                     double amountToAdd = iter.Value * splitValues[i];
-                    ret[iter.Key] += amountToAdd;
-                    totalSum += amountToAdd;
+                    fluidTypeMap[iter.Key] += amountToAdd;
+                    fluidTypeSum += amountToAdd;
                 }
+                temperature += responses[i].temperature * splitValues[i];
+                tempDivisor += splitValues[i];
             }
 
             //Normalize oursleves if needed
-            if (totalSum != 1.0 && totalSum != 0.0)          //1 means we are already normal, 0 would cause NAN.
+            if (fluidTypeSum != 1.0 && fluidTypeSum != 0.0)          //1 means we are already normal, 0 would cause NAN.
             {
                 //Need to go through and re-normalize
-                foreach (FluidType key in ret.Keys.ToList())                //The ToList creates a copy of the keys, which makes it not throw an exception.
+                foreach (FluidType key in fluidTypeMap.Keys.ToList())                //The ToList creates a copy of the keys, which makes it not throw an exception.
                 {
-                    ret[key] /= totalSum;
+                    fluidTypeMap[key] /= fluidTypeSum;
                 }
             }
 
+            if (tempDivisor == 0.0)
+                ret.temperature = responses[0].temperature;         //Just pick one? It doesn't matter since there is no flow??? TODO: Figure out what this acutally means.
+            else
+                ret.temperature = temperature / tempDivisor;
+
+            ret.fluidTypeMap = fluidTypeMap;
             return ret;
         }
 

@@ -18,6 +18,8 @@ namespace AppriPhysics.Components
         protected double finalFlow;
         protected double inletPressure;
         protected double outletPressure;
+        protected double inletTemperature;
+        protected double outletTemperature;
         
         protected Dictionary<FluidType, double> lastFluidTypeMap;
 
@@ -25,6 +27,12 @@ namespace AppriPhysics.Components
         {
             //This should probably be abstract... but default can do nothing...
         }
+
+        public double getInletTemperature()
+        {
+            return inletTemperature;
+        }
+
         public virtual double getAngerLevel(Dictionary<String, double> angerMap)
         {
             return 0.0;                     //Most components can't get angry, so default is no anger!
