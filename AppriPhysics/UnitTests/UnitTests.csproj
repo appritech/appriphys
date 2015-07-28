@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="CombineBeforeAndAfterPumpTests.cs" />
     <Compile Include="DualPumpTests.cs" />
+    <Compile Include="MixtureAndTemperatureTests.cs" />
     <Compile Include="SplitBeforePumpTests.cs" />
     <Compile Include="StraightPipeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

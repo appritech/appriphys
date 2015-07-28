@@ -59,10 +59,7 @@ namespace AppriPhysics.Solving
                 }
 
                 //Right now, we have to apply the solution each time to see if we have anger... need to rethink the algorithm...
-                foreach (Pump p in pumps.Values)
-                {
-                    p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], false);
-                }
+                applySolution(false);
 
                 bool hasAnger = checkAnger();
                 if (hasAnger)
@@ -74,9 +71,20 @@ namespace AppriPhysics.Solving
 
             resetPartialState();
             //Now that we have a final solution, apply the values and let the temperatures and changing of tank levels, etc happen.
-            foreach (Pump p in pumps.Values)
+            applySolution(true);
+        }
+
+        private void applySolution(bool lastTime)
+        {
+            bool allApplied = false;
+            while (!allApplied)
             {
-                p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], true);
+                allApplied = true;
+                foreach (Pump p in pumps.Values)
+                {
+                    if (!p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], lastTime))
+                        allApplied = false;
+                }
             }
         }
 
@@ -86,6 +94,7 @@ namespace AppriPhysics.Solving
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
             FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, flowPusherModifiers[p.name]);
+            baseData.fluidTypeMap = sourceAbility.fluidTypeMap;             //Pass the mixture stuff from source to sink
             FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, flowPusherModifiers[p.name]);
 
             if (flowPusherModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))

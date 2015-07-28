@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AppriPhysics.Components;
 using AppriPhysics.Solving;
+using System.Collections.Generic;
 
 namespace UnitTests
 {
@@ -9,15 +10,17 @@ namespace UnitTests
     public class WholeModelTest
     {
         private GraphSolver gs;
+        private Dictionary<FluidType, double> plainWater = new Dictionary<FluidType, double>();
 
         [TestInitialize()]
         public void InitializeGraph()
         {
             gs = new GraphSolver();
+            plainWater.Add(FluidType.WATER, 1.0);
 
             //Tanks t1 and t2 are the base sources, and go to v1 and v2 directly (return comes back through v11 and v12)
-            gs.addComponent(new Tank("T1", 1000.0, 500.0, new string[] { "V1" }));
-            gs.addComponent(new Tank("T2", 1000.0, 500.0, new string[] { "V2" }));
+            gs.addComponent(new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "V1" }));
+            gs.addComponent(new Tank("T2", 1000.0, plainWater, 500.0, new string[] { "V2" }));
             gs.addComponent(new FlowLine("V1", "C1"));         //v1 and v2 both go into S1
             gs.addComponent(new FlowLine("V2", "C1"));
 

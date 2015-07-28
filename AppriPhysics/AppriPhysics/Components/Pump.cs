@@ -24,6 +24,14 @@ namespace AppriPhysics.Components
         private FlowComponent sink;
         private double pumpingPercent = 1.0f;
 
+        private Boolean solutionApplied = false;
+
+        public override void resetState()
+        {
+            base.resetState();
+            solutionApplied = false;
+        }
+
         private void setPumpingPercent(double pumpingPercent)
         {
             this.pumpingPercent = pumpingPercent;
@@ -70,6 +78,8 @@ namespace AppriPhysics.Components
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * modifier.flowPercent;
             baseData.pressure = calculateInletPressure(modifier);
             inletPressure = baseData.pressure;
+            
+            //We only do last response on the source side for pumps (all other components only have one side for this stuff...
             return source.getSourcePossibleValues(baseData, this, 1.0, 1.0);         //Always ask 100% of whatever desired flow we have. Will send smaller percent upon solving whole solution.
         }
 
@@ -112,19 +122,37 @@ namespace AppriPhysics.Components
             this.source = source;
         }
 
-        public void applySolution(FlowCalculationData baseData, FlowPusherModifier modifier, bool lastTime)
+        public bool applySolution(FlowCalculationData baseData, FlowPusherModifier modifier, bool lastTime)
         {
-            setSourceValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
-            setSinkValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
+            if (solutionApplied)
+                return true;                     //If we have already successfully sent all our data, then we shouldn't do it again...
+
+            SettingResponseData sourceResponse = setSourceValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
+            if (sourceResponse != null)
+            {
+                baseData.fluidTypeMap = sourceResponse.fluidTypeMap;
+                //TODO: Copy temperature data from source into what we pass down to our sinks.
+                setSinkValues(baseData, null, pumpingPercent * mcrRating * modifier.flowPercent, lastTime);
+                solutionApplied = true;
+            }
+
+            return solutionApplied;
         }
         
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = flowVolume;
 
             finalFlow = flowVolume;              //Stash this value for later. The last method call will have the final solution's flow valueCC
-            source.setSourceValues(baseData, this, flowVolume, lastTime);
+
+            SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
+            if (ret != null)
+            {
+                lastFluidTypeMap = ret.fluidTypeMap;
+                //TODO: Also need to have the temperature data...
+            }
+            return ret;
         }
 
         public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)

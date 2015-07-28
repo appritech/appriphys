@@ -98,6 +98,7 @@ namespace AppriPhysics.Components
             {
                 setPressuresForSinkSide(baseData.pressure, ret.backPressure, pressurePercent, limitedPressurePercent);
             }
+
             return ret;
         }
 
@@ -120,16 +121,23 @@ namespace AppriPhysics.Components
             return 0.0;
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-            source.setSourceValues(baseData, this, flowVolume, lastTime);
+
+            SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
+            if (ret != null)
+            {
+                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+            }
+            return ret;
         }
 
         public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
             sink.setSinkValues(baseData, this, flowVolume, lastTime);
+            lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)

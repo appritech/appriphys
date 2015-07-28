@@ -22,5 +22,6 @@ namespace AppriPhysics.Solving
 
         public double desiredFlowVolume;
         public double pressure;
+        public Dictionary<FluidType, double> fluidTypeMap;
     }
 }

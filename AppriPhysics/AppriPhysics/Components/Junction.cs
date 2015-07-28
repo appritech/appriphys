@@ -44,8 +44,30 @@ namespace AppriPhysics.Components
 
         private Dictionary<String, int> indexByName = new Dictionary<String, int>();
         private Dictionary<String, bool[]> indexesUsedByPump = new Dictionary<String, bool[]>();
+        SettingResponseData setterDownstreamValue = null;
 
         double[] setCombiningVolumeMap;
+
+        public override void resetState()
+        {
+            base.resetState();
+            for (int i = 0; i < setCombiningVolumeMap.Length; i++)
+            {
+                setCombiningVolumeMap[i] = -1.0;
+            }
+            combinerDownstreamValues.Clear();
+            foreach (KeyValuePair<String, double[]> iter in combinerMap)
+            {
+                for (int i = 0; i < iter.Value.Length; i++)
+                {
+                    if (!indexesUsedByPump.ContainsKey(iter.Key) || indexesUsedByPump[iter.Key][i])
+                        iter.Value[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
+                    else
+                        iter.Value[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                }
+            }
+            setterDownstreamValue = null;
+        }
 
         public override void connectSelf(Dictionary<string, FlowComponent> components)
         {
@@ -250,7 +272,9 @@ namespace AppriPhysics.Components
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
             ret.backPressure = maxBackPressure;
+            ret.fluidTypeMap = PhysTools.mixFluids(responses, flowPercentageSolutions[baseData.flowPusher.name]);
             setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
+
             return ret;
         }
 
@@ -303,42 +327,54 @@ namespace AppriPhysics.Components
             return preferredFlowPercent;
         }
 
-        private void setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
+        private SettingResponseData setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
         {
-            for (int i = 0; i < nodes.Length; i++)
+            if(isSink)
             {
-                if (isSink)
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
-                else
-                    nodes[i].setSourceValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
-            }
-            if (isSink)
-                finalFlow = flowVolume;
-            else
-                finalFlow = flowVolume;
-        }
-
-        public override void resetState()
-        {
-            base.resetState();
-            for(int i = 0; i < setCombiningVolumeMap.Length; i++)
-            {
-                setCombiningVolumeMap[i] = -1.0;
-            }
-            combinerDownstreamValues.Clear();
-            foreach(KeyValuePair<String, double[]> iter in combinerMap)
-            {
-                for(int i = 0; i < iter.Value.Length; i++)
+                for (int i = 0; i < nodes.Length; i++)
                 {
-                    if (!indexesUsedByPump.ContainsKey(iter.Key) || indexesUsedByPump[iter.Key][i])
-                        iter.Value[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
-                    else
-                        iter.Value[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
                 }
+                finalFlow = flowVolume;
+
+                lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                
+                return null;
+            }
+            else
+            {
+                SettingResponseData[] responses = new SettingResponseData[nodes.Length];
+                double[] volumes = new double[nodes.Length];
+                bool hasNull = false;
+                for (int attempt = 0; attempt < 2; attempt++)
+                {
+                    hasNull = false;
+                    for (int i = 0; i < nodes.Length; i++)
+                    {
+                        volumes[i] = flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume;
+                        if(responses[i] == null)
+                            responses[i] = nodes[i].setSourceValues(baseData, this, volumes[i], lastTime);
+                        if (responses[i] == null)
+                            hasNull = true;
+                    }
+                    if (!hasNull)
+                        break;
+                }
+                if (hasNull)
+                    return null;
+
+                finalFlow = flowVolume;
+                SettingResponseData ret = new SettingResponseData();
+                ret.flowVolume = flowVolume;
+                ret.fluidTypeMap = PhysTools.mixFluids(responses, volumes);
+
+                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+
+                return ret;
             }
         }
 
-        private void setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
+        private SettingResponseData setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
         {
             int index = indexByName[caller.name];
             setCombiningVolumeMap[index] = flowVolume;   
@@ -347,20 +383,38 @@ namespace AppriPhysics.Components
             for (int i = 0; i < setCombiningVolumeMap.Length; i++)
             {
                 if (setCombiningVolumeMap[i] < 0.0)
-                    return;                //We haven't seen all of the inputs to combine them... 
+                    return null;                //We haven't seen all of the inputs to combine them... 
                 else
                     volumeSum += setCombiningVolumeMap[i];
             }
 
             finalFlow = volumeSum;
 
-            //Only pass down data if we have all of the data (return above prevents incomplete data)
-            for (int i = 0; i < nodes.Length; i++)
+            if (isSink)
             {
-                if (isSink)
+                for (int i = 0; i < nodes.Length; i++)
+                {
                     nodes[i].setSinkValues(baseData, this, volumeSum, lastTime);
-                else
-                    nodes[i].setSourceValues(baseData, this, volumeSum, lastTime);
+                }
+
+                lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                
+                return null;
+            }
+            else
+            {
+                if (nodes.Length != 1)
+                    throw new Exception("Source combiners can only have 1 node");
+                if (setterDownstreamValue == null)
+                    setterDownstreamValue = nodes[0].setSourceValues(baseData, this, volumeSum, lastTime);
+                
+                SettingResponseData ret = new SettingResponseData();
+                ret.flowVolume = volumeSum;
+                ret.fluidTypeMap = setterDownstreamValue.fluidTypeMap;
+
+                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                
+                return ret;
             }
         }
 
@@ -445,12 +499,12 @@ namespace AppriPhysics.Components
                 setCombiningFlowValues(baseData, caller, flowVolume, sinks, true, lastTime);
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             if (!hasMultipleSinks)
-                setFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
+                return setFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
             else
-                setCombiningFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
+                return setCombiningFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
         }
 
         public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)

@@ -10,10 +10,11 @@ namespace AppriPhysics.Components
     public class Tank : FlowComponent
     {
 
-        public Tank(String name, double capacity, double currentVolume, String[] sinkNames) : base(name)
+        public Tank(String name, double capacity, Dictionary<FluidType, double> normalizedVolumeMap, double currentVolume, String[] sinkNames) : base(name)
         {
             this.sinkNames = sinkNames;
             this.capacity = capacity;
+            this.normalizedVolumeMap = normalizedVolumeMap;
             this.currentVolume = currentVolume;
         }
 
@@ -21,7 +22,8 @@ namespace AppriPhysics.Components
         //private FlowComponent sink;             //Needs to be a collection of sinks, if we think we want to use it.
         private double capacity;
         private double currentVolume;
-        
+        private Dictionary<FluidType, double> normalizedVolumeMap;
+
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
             if (sinkNames != null && sinkNames.Length > 0)
@@ -47,6 +49,7 @@ namespace AppriPhysics.Components
             }
             ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
+            ret.fluidTypeMap = normalizedVolumeMap;
             outletPressure = ret.backPressure;
             return ret;
         }
@@ -63,6 +66,7 @@ namespace AppriPhysics.Components
             }
             ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
+            ret.fluidTypeMap = normalizedVolumeMap;
             outletPressure = ret.backPressure;
             return ret;
         }
@@ -76,13 +80,18 @@ namespace AppriPhysics.Components
             this.currentVolume = volume;
         }
 
-        public override void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
+            SettingResponseData ret = new SettingResponseData();
             finalFlow -= flowVolume;
             if(lastTime)
             {
                 currentVolume -= flowVolume * PhysTools.timeStep;
             }
+
+            ret.flowVolume = flowVolume;
+            ret.fluidTypeMap = normalizedVolumeMap;
+            return ret;
         }
 
         public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)

@@ -18,6 +18,8 @@ namespace AppriPhysics.Components
         protected double finalFlow;
         protected double inletPressure;
         protected double outletPressure;
+        
+        protected Dictionary<FluidType, double> lastFluidTypeMap;
 
         public virtual void connectSelf(Dictionary<String, FlowComponent> components)
         {
@@ -33,6 +35,11 @@ namespace AppriPhysics.Components
             return finalFlow;
         }
 
+        public Dictionary<FluidType, double> getLastFluidTypeMap()
+        {
+            return lastFluidTypeMap;
+        }
+
         public virtual void resetState()
         {
             finalFlow = 0.0;
@@ -43,7 +50,7 @@ namespace AppriPhysics.Components
         public abstract FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent,double pressurePercent);
         public abstract FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent);
 
-        public abstract void setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
+        public abstract SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
         public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);

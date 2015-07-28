@@ -23,16 +23,19 @@ namespace AppriPhysics
         }
 
         private static GraphSolver gs;
+        private static Dictionary<FluidType, double> plainWater = new Dictionary<FluidType, double>();
+        private static Dictionary<FluidType, double> seaWater = new Dictionary<FluidType, double>();
 
         public static void UglyTest()
         {
             gs = new GraphSolver();
-
+            plainWater.Add(FluidType.WATER, 1.0);
+            seaWater.Add(FluidType.SEA_WATER, 1.0);
 
 
             //Tanks t1 and t2 are the base sources, and go to v1 and v2 directly (return comes back through v11 and v12)
-            gs.addComponent(new Tank("T1", 1000.0, 500.0, new string[] { "V1" }));
-            gs.addComponent(new Tank("T2", 1000.0, 500.0, new string[] { "V2" }));
+            gs.addComponent(new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "V1" }));
+            gs.addComponent(new Tank("T2", 1000.0, plainWater, 500.0, new string[] { "V2" }));
             gs.addComponent(new FlowLine("V1", "C1"));         //v1 and v2 both go into S1
             gs.addComponent(new FlowLine("V2", "C1"));
 
@@ -69,15 +72,11 @@ namespace AppriPhysics
             ((FlowLine)gs.getComponent("V11")).setMaxFlow(150);
             ((FlowLine)gs.getComponent("V12")).setMaxFlow(150);
 
-            //Valve v11 = (Valve) mc.getComponent("V11");
-            //v11.setOpenPercentage(0);
-            ((FlowLine)gs.getComponent("V11")).setFlowAllowedPercent(0.0);
-            ((FlowLine)gs.getComponent("V2")).setFlowAllowedPercent(0.0);
+            ((FlowLine)gs.getComponent("V2")).setMaxFlow(150);
 
+            ((Tank)gs.getComponent("T1")).setCurrentVolume(0.0);
 
-
-
-            //v1.setFlowAllowedPercent(0.5);
+            //v2.setFlowAllowedPercent(0.25);
             //v4.setFlowAllowedPercent(0.2);
             //t1.setCurrentVolume(0.0);
             //v5.setMaxFlow(100.0);
