@@ -34,6 +34,52 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void Straight_Time_TransferAll()
+        {
+            PhysTools.timeStep = 0.1f;
+
+            Tank t1 = (Tank)gs.getComponent("T1");
+            t1.setCurrentVolume(500.0);
+            Tank t2 = (Tank)gs.getComponent("T2");
+            t2.setCurrentVolume(0.0);
+            for (int i = 0; i < 60; i++)
+                gs.solveMimic();                        //10 steps means 1 full second. Thus, we should have transferred 100 of the 500 from T1 to T2
+
+            double solutionFlow = 0.0;          //We ran the first tank dry, so no more flow anymore
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+
+            Assert.AreEqual(0.0, t1.getCurrentVolume(), 0.00001);
+            Assert.AreEqual(500.0, t2.getCurrentVolume(), 0.00001);
+        }
+
+        [TestMethod]
+        public void Straight_Time_TransferPart()
+        {
+            PhysTools.timeStep = 0.1f;
+
+            Tank t1 = (Tank)gs.getComponent("T1");
+            t1.setCurrentVolume(500.0);
+            Tank t2 = (Tank)gs.getComponent("T2");
+            t2.setCurrentVolume(0.0);
+            for(int i = 0; i < 10; i++)
+                gs.solveMimic();                        //10 steps means 1 full second. Thus, we should have transferred 100 of the 500 from T1 to T2
+
+            double solutionFlow = 100.0;          //Single flow through whole system
+            TestingTools.verifyFlow(gs, "T1", -solutionFlow);
+            TestingTools.verifyFlow(gs, "V1", solutionFlow);
+            TestingTools.verifyFlow(gs, "P1", solutionFlow);
+            TestingTools.verifyFlow(gs, "V2", solutionFlow);
+            TestingTools.verifyFlow(gs, "T2", solutionFlow);
+
+            Assert.AreEqual(400.0, t1.getCurrentVolume(), 0.00001);
+            Assert.AreEqual(100.0, t2.getCurrentVolume(), 0.00001);
+        }
+
+        [TestMethod]
         public void Straight_AllOpen()
         {
             gs.solveMimic();

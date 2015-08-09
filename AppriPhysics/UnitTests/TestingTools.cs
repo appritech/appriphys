@@ -16,7 +16,7 @@ namespace UnitTests
 
         public static void verifyMixtureAndTemperature(GraphSolver gs, string name, Dictionary<FluidType, double> truthMap, double temp)
         {
-            Dictionary<FluidType, double> componentMap = gs.getComponent(name).getLastFluidTypeMap();
+            Dictionary<FluidType, double> componentMap = gs.getComponent(name).getCurrentFluidTypeMap();
             double componentTemp = gs.getComponent(name).getInletTemperature();
             Assert.AreEqual(temp, componentTemp, 0.00001);
             foreach(KeyValuePair<FluidType, double> iter in truthMap)

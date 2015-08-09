@@ -21,7 +21,7 @@ namespace AppriPhysics.Components
         protected double inletTemperature;
         protected double outletTemperature;
         
-        protected Dictionary<FluidType, double> lastFluidTypeMap;
+        protected Dictionary<FluidType, double> currentFluidTypeMap;
 
         public virtual void connectSelf(Dictionary<String, FlowComponent> components)
         {
@@ -43,9 +43,9 @@ namespace AppriPhysics.Components
             return finalFlow;
         }
 
-        public Dictionary<FluidType, double> getLastFluidTypeMap()
+        public Dictionary<FluidType, double> getCurrentFluidTypeMap()
         {
-            return lastFluidTypeMap;
+            return currentFluidTypeMap;
         }
 
         public virtual void resetState()

@@ -148,7 +148,7 @@ namespace AppriPhysics.Components
             SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
             if (ret != null)
             {
-                lastFluidTypeMap = ret.fluidTypeMap;
+                currentFluidTypeMap = ret.fluidTypeMap;
                 inletTemperature = ret.temperature;
                 outletTemperature = ret.temperature;
             }

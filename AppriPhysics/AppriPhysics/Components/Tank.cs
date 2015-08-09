@@ -14,7 +14,7 @@ namespace AppriPhysics.Components
         {
             this.sinkNames = sinkNames;
             this.capacity = capacity;
-            this.normalizedVolumeMap = normalizedVolumeMap;
+            this.currentFluidTypeMap = normalizedVolumeMap;
             this.currentVolume = currentVolume;
             this.currentTemperature = 20.0;                 //20 degrees is a good round temperature for starters.
         }
@@ -23,7 +23,7 @@ namespace AppriPhysics.Components
         //private FlowComponent sink;             //Needs to be a collection of sinks, if we think we want to use it.
         private double capacity;
         private double currentVolume;
-        private Dictionary<FluidType, double> normalizedVolumeMap;
+        //private Dictionary<FluidType, double> normalizedVolumeMap;
         public double currentTemperature;
 
         public override void connectSelf(Dictionary<String, FlowComponent> components)
@@ -51,7 +51,7 @@ namespace AppriPhysics.Components
             }
             ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
-            ret.fluidTypeMap = normalizedVolumeMap;
+            ret.fluidTypeMap = currentFluidTypeMap;
             outletPressure = ret.backPressure;
             return ret;
         }
@@ -68,7 +68,7 @@ namespace AppriPhysics.Components
             }
             ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
             ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
-            ret.fluidTypeMap = normalizedVolumeMap;
+            ret.fluidTypeMap = currentFluidTypeMap;
             outletPressure = ret.backPressure;
             return ret;
         }
@@ -82,6 +82,11 @@ namespace AppriPhysics.Components
             this.currentVolume = volume;
         }
 
+        public double getCurrentVolume()
+        {
+            return this.currentVolume;
+        }
+
         public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             SettingResponseData ret = new SettingResponseData();
@@ -92,7 +97,7 @@ namespace AppriPhysics.Components
             }
 
             ret.flowVolume = flowVolume;
-            ret.fluidTypeMap = normalizedVolumeMap;
+            ret.fluidTypeMap = currentFluidTypeMap;
             ret.temperature = currentTemperature;
 
             inletTemperature = currentTemperature;
@@ -106,8 +111,15 @@ namespace AppriPhysics.Components
             finalFlow += flowVolume;
             if(lastTime)
             {
-                currentVolume += flowVolume * PhysTools.timeStep;
-                //TODO: Effect of this particular fluid flow on our temperature.
+                double volumeToAdd = flowVolume * PhysTools.timeStep;
+                SettingResponseData tankCurrentFluids = new SettingResponseData(currentTemperature, this.currentFluidTypeMap);
+                SettingResponseData incomingFluids = new SettingResponseData(baseData.temperature, baseData.fluidTypeMap);
+                SettingResponseData mixture = PhysTools.mixFluidPercentsAndTemperatures(new SettingResponseData[] { tankCurrentFluids, incomingFluids }, new double[] { currentVolume, volumeToAdd });
+
+                this.currentTemperature = mixture.temperature;
+                this.currentFluidTypeMap = mixture.fluidTypeMap;
+                
+                currentVolume += volumeToAdd;
             }
 
             inletTemperature = currentTemperature;

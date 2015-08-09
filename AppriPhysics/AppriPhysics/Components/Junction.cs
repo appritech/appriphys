@@ -393,7 +393,7 @@ namespace AppriPhysics.Components
                 }
                 finalFlow = flowVolume;
 
-                lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
                 inletTemperature = baseData.temperature;
                 outletTemperature = baseData.temperature;
                 
@@ -426,7 +426,7 @@ namespace AppriPhysics.Components
                 ret.flowVolume = flowVolume;
                 //ret.fluidTypeMap = PhysTools.mixFluids(responses, volumes);
 
-                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                currentFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
                 inletTemperature = ret.temperature;
                 outletTemperature = ret.temperature;
 
@@ -457,7 +457,7 @@ namespace AppriPhysics.Components
                     nodes[i].setSinkValues(baseData, this, volumeSum, lastTime);
                 }
 
-                lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
                 inletTemperature = baseData.temperature;
                 outletTemperature = baseData.temperature;
 
@@ -475,7 +475,7 @@ namespace AppriPhysics.Components
                 ret.fluidTypeMap = setterDownstreamValue.fluidTypeMap;
                 ret.temperature = setterDownstreamValue.temperature;
 
-                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                currentFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
                 inletTemperature = ret.temperature;
                 outletTemperature = ret.temperature;
 

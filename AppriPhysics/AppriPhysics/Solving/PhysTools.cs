@@ -25,12 +25,12 @@ namespace AppriPhysics.Solving
             return array;
         }
 
-        public static Dictionary<FluidType, double> calculateNormalizedFluidMap(Dictionary<FluidType, double> map)
-        {
-            Dictionary<FluidType, double> ret = DictionaryCloner<FluidType, double>.cloneDictionary(map);
+        //public static Dictionary<FluidType, double> calculateNormalizedFluidMap(Dictionary<FluidType, double> map)
+        //{
+        //    Dictionary<FluidType, double> ret = DictionaryCloner<FluidType, double>.cloneDictionary(map);
 
-            return ret;
-        }
+        //    return ret;
+        //}
 
         public class DictionaryCloner<TKey, TValue>
         {
@@ -38,7 +38,7 @@ namespace AppriPhysics.Solving
             {
                 if (toClone == null)
                     return null;
-                return toClone.ToDictionary(entry => entry.Key, entry => entry.Value); ;
+                return toClone.ToDictionary(entry => entry.Key, entry => entry.Value);
             }
         }
 

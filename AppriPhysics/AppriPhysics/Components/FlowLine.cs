@@ -127,7 +127,7 @@ namespace AppriPhysics.Components
             SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
             if (ret != null)
             {
-                lastFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
+                currentFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
                 inletTemperature = ret.temperature;
                 outletTemperature = ret.temperature;
             }
@@ -138,7 +138,7 @@ namespace AppriPhysics.Components
         {
             finalFlow = flowVolume;
             sink.setSinkValues(baseData, this, flowVolume, lastTime);
-            lastFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+            currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
             inletTemperature = baseData.temperature;
             outletTemperature = baseData.temperature;
         }

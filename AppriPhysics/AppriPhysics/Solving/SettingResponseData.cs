@@ -8,6 +8,12 @@ namespace AppriPhysics.Solving
 {
     public class SettingResponseData
     {
+        //NOTE: If this class grows much larger, then the temp and fluidTypeMap should be put into an interface, and have a super-light version for Tanks to mix the temps and fluidTypes.
+        public SettingResponseData(double temperature, Dictionary<FluidType, double> fluidTypeMap)
+        {
+            this.temperature = temperature;
+            this.fluidTypeMap = fluidTypeMap;
+        }
         public SettingResponseData()
         {
 
