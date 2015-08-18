@@ -42,6 +42,22 @@ namespace AppriPhysics.Solving
             }
         }
 
+        public static void normalizeFluidMixture(ref Dictionary<FluidType, double> input, double sumGoal = 1.0)
+        {
+            double sum = 0.0;
+            foreach(double val in input.Values)
+            {
+                sum += val;
+            }
+            if(sum != 0.0)
+            {
+                foreach(FluidType key in input.Keys.ToList<FluidType>())
+                {
+                    input[key] *= (sumGoal / sum);
+                }
+            }
+        }
+
         public static SettingResponseData mixFluidPercentsAndTemperatures(SettingResponseData[] responses, double[] splitValues)
         {
             SettingResponseData ret = new SettingResponseData();

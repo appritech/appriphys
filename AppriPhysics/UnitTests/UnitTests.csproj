@@ -54,6 +54,7 @@
     <Compile Include="DualPumpTests.cs" />
     <Compile Include="MixtureAndTemperatureTests.cs" />
     <Compile Include="SplitBeforePumpTests.cs" />
+    <Compile Include="StraightCompressorTests.cs" />
     <Compile Include="StraightPipeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestingTools.cs" />

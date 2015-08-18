@@ -25,13 +25,14 @@ namespace AppriPhysics.Solving
         }
 
         public String description;
-        public bool isCompressible;
+        public bool isGas;
 
         //TODO: Probably want to add SG, and other properties
-        private FluidType(String description, bool isCompressible)
+        private FluidType(String description, bool isGas)
         {
             this.description = description;
-            this.isCompressible = isCompressible;
+            this.isGas = isGas;
         }
+
     }
 }

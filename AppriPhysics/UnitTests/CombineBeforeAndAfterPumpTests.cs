@@ -18,7 +18,7 @@ namespace UnitTests
             gs = new GraphSolver();
             plainWater.Add(FluidType.WATER, 1.0);
 
-            Tank t1 = new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "C1" });
+            Tank t1 = new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "C1" }, false);
             gs.addComponent(t1);
             Junction c1 = new Junction("C1", new string[] { "V1", "V2" }, new string[] { "T1" });
             gs.addComponent(c1);
@@ -38,7 +38,7 @@ namespace UnitTests
             gs.addComponent(v4);
             Junction c2 = new Junction("C2", new string[] { "T2" }, new string[] { "V3", "V4" });
             gs.addComponent(c2);
-            Tank t2 = new Tank("T2", 1000.0, plainWater, 500.0, new string[] { });          //We have no sinks, since we are the bottom of this food-chain.
+            Tank t2 = new Tank("T2", 1000.0, plainWater, 500.0, new string[] { }, false);          //We have no sinks, since we are the bottom of this food-chain.
             gs.addComponent(t2);
 
             gs.connectComponents();

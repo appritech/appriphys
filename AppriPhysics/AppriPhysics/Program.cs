@@ -34,8 +34,8 @@ namespace AppriPhysics
 
 
             //Tanks t1 and t2 are the base sources, and go to v1 and v2 directly (return comes back through v11 and v12)
-            gs.addComponent(new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "V1" }));
-            gs.addComponent(new Tank("T2", 1000.0, plainWater, 500.0, new string[] { "V2" }));
+            gs.addComponent(new Tank("T1", 1000.0, plainWater, 500.0, new string[] { "V1" }, false));
+            gs.addComponent(new Tank("T2", 1000.0, plainWater, 500.0, new string[] { "V2" }, false));
             gs.addComponent(new FlowLine("V1", "C1"));         //v1 and v2 both go into S1
             gs.addComponent(new FlowLine("V2", "C1"));
 
