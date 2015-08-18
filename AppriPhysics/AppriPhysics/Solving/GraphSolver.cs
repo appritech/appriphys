@@ -93,9 +93,9 @@ namespace AppriPhysics.Solving
             double flowModifier = flowPusherModifiers[p.name].flowPercent;
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
-            FlowResponseData sourceAbility = p.getSourcePossibleValues(baseData, flowPusherModifiers[p.name]);
+            FlowResponseData sourceAbility = p.getPumpSourcePossibleValues(baseData, flowPusherModifiers[p.name]);
             baseData.fluidTypeMap = sourceAbility.fluidTypeMap;             //Pass the mixture stuff from source to sink
-            FlowResponseData sinkAbility = p.getSinkPossibleValues(baseData, flowPusherModifiers[p.name]);
+            FlowResponseData sinkAbility = p.getPumpSinkPossibleValues(baseData, flowPusherModifiers[p.name]);
 
             if (flowPusherModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
                 return false;

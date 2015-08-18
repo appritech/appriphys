@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Pumps\PressureDifferentialPump.cs" />
     <Compile Include="Solving\FlowCalculationData.cs" />
     <Compile Include="Components\FlowComponent.cs" />
     <Compile Include="Components\FlowLine.cs" />

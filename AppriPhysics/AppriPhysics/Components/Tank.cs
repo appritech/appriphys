@@ -61,7 +61,7 @@ namespace AppriPhysics.Components
                 ret.flowPercent = 0.0f;
             }
             ret.flowVolume = flowPercent * baseData.desiredFlowVolume;
-            ret.backPressure = 0.4;                     //TODO: Make real backpressure based on tank height, etc.
+            ret.backPressure = tankPressure;
             ret.fluidTypeMap = currentFluidTypeMap;
             outletPressure = ret.backPressure;
             return ret;

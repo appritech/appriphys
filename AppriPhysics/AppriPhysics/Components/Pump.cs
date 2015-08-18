@@ -18,13 +18,13 @@ namespace AppriPhysics.Components
         }
 
         public double mcrRating;
-        private double mcrPressure;
-        private String sinkName;
-        private FlowComponent source;
-        private FlowComponent sink;
-        private double pumpingPercent = 1.0f;
+        protected double mcrPressure;
+        protected String sinkName;
+        protected FlowComponent source;
+        protected FlowComponent sink;
+        protected double pumpingPercent = 1.0f;
 
-        private Boolean solutionApplied = false;
+        protected Boolean solutionApplied = false;
 
         public override void resetState()
         {
@@ -43,7 +43,7 @@ namespace AppriPhysics.Components
             sink.setSource(this);
         }
 
-        private double calculateOutletPressure(FlowPusherModifier modifier)
+        protected double calculateOutletPressure(FlowPusherModifier modifier)
         {
             double ret = mcrPressure * pumpingPercent * modifier.minSourceFlowPercent;           //The source is the main thing that can drop the pressure
             if (modifier.minSourceFlowPercent > modifier.minSinkFlowPercent && modifier.minSourceFlowPercent > 0.0)
@@ -55,14 +55,14 @@ namespace AppriPhysics.Components
             return ret;
         }
 
-        private double calculateInletPressure(FlowPusherModifier modifier)
+        protected double calculateInletPressure(FlowPusherModifier modifier)
         {
             double ret = -0.2 * pumpingPercent;                           //By default, it will be about -0.2 bar when running at 100% normally
             ret *= (1 + (2.0 * (1.0 - modifier.minSourceFlowPercent)));           //If the source is blocked, it can increase by up to 3x
             return ret;
         }
 
-        public FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public virtual FlowResponseData getPumpSinkPossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
         {
             baseData.flowPusher = this;
             baseData.desiredFlowVolume = pumpingPercent * mcrRating * modifier.flowPercent;
@@ -71,7 +71,7 @@ namespace AppriPhysics.Components
             return sink.getSinkPossibleValues(baseData, this, 1.0, 1.0);             //Always ask 100% of whatever desired flow we have
         }
 
-        public FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public virtual FlowResponseData getPumpSourcePossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
         {
             //This shouldn't happen anymore, since GraphSolver calls the pump-specific (i.e. not override) version.
             baseData.flowPusher = this;
