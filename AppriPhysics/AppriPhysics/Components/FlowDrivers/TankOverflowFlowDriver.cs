@@ -9,7 +9,7 @@ namespace AppriPhysics.Components.FlowDrivers
 {
     public class TankOverflowFlowDriver : FlowDriver
     {
-        public TankOverflowFlowDriver(String name, double mcrRating, double mcrPressure, String sinkName, double minTankPercent, double maxTankPercent) : base(name, mcrRating, mcrPressure, sinkName)
+        public TankOverflowFlowDriver(String name, double mcrRating, double mcrPressure, String deliveryName, double minTankPercent, double maxTankPercent) : base(name, mcrRating, mcrPressure, deliveryName)
         {
             this.minTankPercent = minTankPercent;
             this.maxTankPercent = maxTankPercent;
@@ -23,16 +23,16 @@ namespace AppriPhysics.Components.FlowDrivers
         {
             base.connectSelf(components);
 
-            if (source is Tank)
-                sourceTank = (Tank)source;
+            if (sourceComponent is Tank)
+                sourceTank = (Tank)sourceComponent;
             else
                 throw new InvalidCastException("TankOverflowPump must have a Tank as its input source");
         }
 
-        public override FlowResponseData getFlowDriverSinkPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
+        public override FlowResponseData getFlowDriverDeliveryPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
-            FlowResponseData normalResponse = base.getFlowDriverSinkPossibleValues(baseData, modifier);
-            //I don't think that we actually need to do anything special on the sink side of things.
+            FlowResponseData normalResponse = base.getFlowDriverDeliveryPossibleValues(baseData, modifier);
+            //I don't think that we actually need to do anything special on the delivery side of things.
             return normalResponse;
         }
 

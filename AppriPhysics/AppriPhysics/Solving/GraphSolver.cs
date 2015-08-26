@@ -35,7 +35,7 @@ namespace AppriPhysics.Solving
             {
                 FlowCalculationData baseData = new FlowCalculationData(iter, angerMap, 0);
                 baseData.flowDriver = iter;
-                iter.exploreSinkGraph(baseData, null);
+                iter.exploreDeliveryGraph(baseData, null);
                 iter.exploreSourceGraph(baseData, null);
                 flowDriverModifiers[iter.name] = new FlowDriverModifier();
             }
@@ -94,10 +94,10 @@ namespace AppriPhysics.Solving
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
             FlowResponseData sourceAbility = p.getFlowDriverSourcePossibleValues(baseData, flowDriverModifiers[p.name]);
-            baseData.fluidTypeMap = sourceAbility.fluidTypeMap;             //Pass the mixture stuff from source to sink
-            FlowResponseData sinkAbility = p.getFlowDriverSinkPossibleValues(baseData, flowDriverModifiers[p.name]);
+            baseData.fluidTypeMap = sourceAbility.fluidTypeMap;             //Pass the mixture stuff from source to delivery
+            FlowResponseData deliveryAbility = p.getFlowDriverDeliveryPossibleValues(baseData, flowDriverModifiers[p.name]);
 
-            if (flowDriverModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
+            if (flowDriverModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, deliveryAbility))
                 return false;
 
             return true;

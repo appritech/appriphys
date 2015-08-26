@@ -9,7 +9,7 @@ namespace AppriPhysics.Components.FlowDrivers
 {
     public class PressureDifferentialFlowDriver : FlowDriver
     {
-        public PressureDifferentialFlowDriver(String name, double mcrRating, double mcrPressure, String sinkName, double minDeltaP, double maxDeltaP) : base(name, mcrRating, mcrPressure, sinkName)
+        public PressureDifferentialFlowDriver(String name, double mcrRating, double mcrPressure, String deliveryName, double minDeltaP, double maxDeltaP) : base(name, mcrRating, mcrPressure, deliveryName)
         {
             this.minDeltaP = minDeltaP;
             this.maxDeltaP = maxDeltaP;
@@ -25,11 +25,11 @@ namespace AppriPhysics.Components.FlowDrivers
             lastSourcePossibleValue = null;
         }
 
-        public override FlowResponseData getFlowDriverSinkPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
+        public override FlowResponseData getFlowDriverDeliveryPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
             pumpingPercent = lastSourcePossibleValue.flowPercent;
             mcrPressure = lastSourcePossibleValue.backPressure;
-            FlowResponseData normalResponse = base.getFlowDriverSinkPossibleValues(baseData, modifier);
+            FlowResponseData normalResponse = base.getFlowDriverDeliveryPossibleValues(baseData, modifier);
 
             double deltaP = lastSourcePossibleValue.backPressure - normalResponse.backPressure;
             if (deltaP < minDeltaP)

@@ -10,9 +10,9 @@ namespace AppriPhysics.Components
     public class Tank : FlowComponent
     {
 
-        public Tank(String name, double capacity, Dictionary<FluidType, double> normalizedVolumeMap, double currentVolume, String[] sinkNames, bool isSealed) : base(name)
+        public Tank(String name, double capacity, Dictionary<FluidType, double> normalizedVolumeMap, double currentVolume, String[] deliveryNames, bool isSealed) : base(name)
         {
-            this.sinkNames = sinkNames;
+            this.deliveryNames = deliveryNames;
             this.capacity = capacity;
             this.currentFluidTypeMap = PhysTools.DictionaryCloner<FluidType, double>.cloneDictionary(normalizedVolumeMap);
             this.currentVolume = currentVolume;
@@ -26,8 +26,7 @@ namespace AppriPhysics.Components
             //}
         }
 
-        private String[] sinkNames;
-        //private FlowComponent sink;             //Needs to be a collection of sinks, if we think we want to use it.
+        private String[] deliveryNames;
         private double capacity;
         private double currentVolume;
         public double currentTemperature;
@@ -39,12 +38,12 @@ namespace AppriPhysics.Components
 
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
-            if (sinkNames != null && sinkNames.Length > 0)
+            if (deliveryNames != null && deliveryNames.Length > 0)
             {
-                for (int i = 0; i < sinkNames.Length; i++)
+                for (int i = 0; i < deliveryNames.Length; i++)
                 {
-                    FlowComponent sink = components[sinkNames[i]];
-                    sink.setSource(this);
+                    FlowComponent deliveryComponent = components[deliveryNames[i]];
+                    deliveryComponent.setSource(this);
                 }
             }
         }
@@ -72,7 +71,7 @@ namespace AppriPhysics.Components
             return tankPressure;
         }
 
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
+        public override FlowResponseData getDeliveryPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             FlowResponseData ret = new FlowResponseData();
 
@@ -149,7 +148,7 @@ namespace AppriPhysics.Components
             return ret;
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override void setDeliveryValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow += flowVolume;
             if(lastTime)
@@ -223,7 +222,7 @@ namespace AppriPhysics.Components
             //Don't have to do anything, since this is the end of the line
         }
 
-        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        public override void exploreDeliveryGraph(FlowCalculationData baseData, FlowComponent caller)
         {
             //Don't have to do anything, since this is the end of the line
         }

@@ -13,18 +13,18 @@ namespace AppriPhysics.Solving
             clearState();
         }
         public FlowResponseData sourceAbility = null;
-        public FlowResponseData sinkAbility = null;
+        public FlowResponseData deliveryAbility = null;
 
         public double flowPercent;
-        public double minSinkFlowPercent;
+        public double minDeliveryFlowPercent;
         public double minSourceFlowPercent;
 
-        public bool updateStateRequiresNewSolution(FlowResponseData sourceAbility, FlowResponseData sinkAbility)
+        public bool updateStateRequiresNewSolution(FlowResponseData sourceAbility, FlowResponseData deliveryAbility)
         {
             bool needsNewSolution = false;
             this.sourceAbility = sourceAbility;
-            this.sinkAbility = sinkAbility;
-            double minFlowAbility = Math.Min(sourceAbility.flowPercent, sinkAbility.flowPercent);
+            this.deliveryAbility = deliveryAbility;
+            double minFlowAbility = Math.Min(sourceAbility.flowPercent, deliveryAbility.flowPercent);
             if (minFlowAbility < flowPercent)
             {
                 flowPercent = minFlowAbility;
@@ -33,8 +33,8 @@ namespace AppriPhysics.Solving
 
             if (sourceAbility.flowPercent < minSourceFlowPercent)
                 minSourceFlowPercent = sourceAbility.flowPercent;
-            if (sinkAbility.flowPercent < minSinkFlowPercent)
-                minSinkFlowPercent = sinkAbility.flowPercent;
+            if (deliveryAbility.flowPercent < minDeliveryFlowPercent)
+                minDeliveryFlowPercent = deliveryAbility.flowPercent;
 
             return needsNewSolution;
         }
@@ -43,7 +43,7 @@ namespace AppriPhysics.Solving
         {
             flowPercent = 1.0;
             minSourceFlowPercent = 1.0;
-            minSinkFlowPercent = 1.0;
+            minDeliveryFlowPercent = 1.0;
         }
     }
 }

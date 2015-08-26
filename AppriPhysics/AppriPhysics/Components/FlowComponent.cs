@@ -56,15 +56,15 @@ namespace AppriPhysics.Components
         }
 
         public abstract FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent,double pressurePercent);
-        public abstract FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent);
+        public abstract FlowResponseData getDeliveryPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent);
 
         public abstract SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
-        public abstract void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
+        public abstract void setDeliveryValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime);
 
         public abstract void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller);
-        public abstract void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller);
+        public abstract void exploreDeliveryGraph(FlowCalculationData baseData, FlowComponent caller);
 
-        protected void setPressuresForSinkSide(double pumpPressure, double backPressure, double inletPercent, double outletPercent)
+        protected void setPressuresForDeliverySide(double pumpPressure, double backPressure, double inletPercent, double outletPercent)
         {
             double delta = pumpPressure - backPressure;
             inletPressure = inletPercent * delta + backPressure;

@@ -9,15 +9,15 @@ namespace AppriPhysics.Components
 {
     public class FlowLine : FlowComponent
     {
-        public FlowLine(String name, String sinkName) : base(name)
+        public FlowLine(String name, String deliveryName) : base(name)
         {
-            this.sinkName = sinkName;
+            this.deliveryName = deliveryName;
             normalPressureDropPercent = 0.95;
         }
 
-        private String sinkName;
-        private FlowComponent source;
-        private FlowComponent sink;
+        private String deliveryName;
+        private FlowComponent sourceComponent;
+        private FlowComponent deliveryComponent;
         private double flowAllowedPercent = 1.0f;
         private double maxFlow = Double.MaxValue;
         private double normalPressureDropPercent;
@@ -39,8 +39,8 @@ namespace AppriPhysics.Components
 
         public override void connectSelf(Dictionary<String, FlowComponent> components)
         {
-            sink = components[sinkName];
-            sink.setSource(this);
+            deliveryComponent = components[deliveryName];
+            deliveryComponent.setSource(this);
         }
 
         private double getLimitedFlowPercent(FlowCalculationData baseData, FlowComponent caller, double flowPercent)
@@ -82,21 +82,21 @@ namespace AppriPhysics.Components
         {
             double limitedFlowPercent = getLimitedFlowPercent(baseData, caller, flowPercent);
             double limitedPressurePercent = getLimitedPressurePercent(baseData, caller, flowPercent, pressurePercent);
-            FlowResponseData ret = source.getSourcePossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
+            FlowResponseData ret = sourceComponent.getSourcePossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
             if (ret != null)
             {
                 setPressuresForSourceSide(baseData.pressure, ret.backPressure, limitedPressurePercent, pressurePercent);
             }
             return ret;
         }
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
+        public override FlowResponseData getDeliveryPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
             double limitedFlowPercent = getLimitedFlowPercent(baseData, caller, flowPercent);
             double limitedPressurePercent = getLimitedPressurePercent(baseData, caller, flowPercent, pressurePercent);
-            FlowResponseData ret = sink.getSinkPossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
+            FlowResponseData ret = deliveryComponent.getDeliveryPossibleValues(baseData, this, limitedFlowPercent, limitedPressurePercent);
             if (ret != null)
             {
-                setPressuresForSinkSide(baseData.pressure, ret.backPressure, pressurePercent, limitedPressurePercent);
+                setPressuresForDeliverySide(baseData.pressure, ret.backPressure, pressurePercent, limitedPressurePercent);
             }
 
             return ret;
@@ -104,7 +104,7 @@ namespace AppriPhysics.Components
 
         public override void setSource(FlowComponent source)
         {
-            this.source = source;
+            this.sourceComponent = source;
         }
 
         public override double getAngerLevel(Dictionary<String, double> angerMap)
@@ -124,7 +124,7 @@ namespace AppriPhysics.Components
         public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-            SettingResponseData ret = source.setSourceValues(baseData, this, flowVolume, lastTime);
+            SettingResponseData ret = sourceComponent.setSourceValues(baseData, this, flowVolume, lastTime);
             if (ret != null)
             {
                 currentFluidTypeMap = ret.fluidTypeMap;                    //On source side, the mixture comes from the return values
@@ -134,23 +134,23 @@ namespace AppriPhysics.Components
             return ret;
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override void setDeliveryValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
             finalFlow = flowVolume;
-            sink.setSinkValues(baseData, this, flowVolume, lastTime);
-            currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+            deliveryComponent.setDeliveryValues(baseData, this, flowVolume, lastTime);
+            currentFluidTypeMap = baseData.fluidTypeMap;               //On the delivery side, the mixture comes from passed in arguments
             inletTemperature = baseData.temperature;
             outletTemperature = baseData.temperature;
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
         {
-            source.exploreSourceGraph(baseData, this);
+            sourceComponent.exploreSourceGraph(baseData, this);
         }
 
-        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        public override void exploreDeliveryGraph(FlowCalculationData baseData, FlowComponent caller)
         {
-            sink.exploreSinkGraph(baseData, this);
+            deliveryComponent.exploreDeliveryGraph(baseData, this);
         }
     }
 }

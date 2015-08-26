@@ -9,30 +9,30 @@ namespace AppriPhysics.Components
 {
     public class Junction : FlowComponent
     {
-        public Junction(String name, String[] sinkNames, String[] sourceNames, String combinerName, double[] normalWeights, double[] maxWeights) : base(name)
+        public Junction(String name, String[] deliveryNames, String[] sourceNames, String combinerName, double[] normalWeights, double[] maxWeights) : base(name)
         {
-            this.sinkNames = sinkNames;
+            this.deliveryNames = deliveryNames;
             this.sourceNames = sourceNames;
             this.normalWeights = normalWeights;
             this.maxWeights = maxWeights;
 
             this.linkedCombinerName = combinerName;
 
-            sinks = new FlowComponent[sinkNames.Length];
-            sources = new FlowComponent[sourceNames.Length];
+            deliveryComponents = new FlowComponent[this.deliveryNames.Length];
+            sourceComponents = new FlowComponent[sourceNames.Length];
         }
         //This is for making a combiner, who doesn't use the weights... at least not for now, but a 3 way valve combiner might need to...
-        public Junction(String name, String[] sinkNames, String[] sourceNames) : this(name, sinkNames, sourceNames, "", null, null)
+        public Junction(String name, String[] deliveryNames, String[] sourceNames) : this(name, deliveryNames, sourceNames, "", null, null)
         {
         }
 
-        String[] sinkNames;
+        String[] deliveryNames;
         String[] sourceNames;
         double[] normalWeights;
         double[] maxWeights;
-        FlowComponent[] sinks;
-        FlowComponent[] sources;
-        bool hasMultipleSinks;
+        FlowComponent[] deliveryComponents;
+        FlowComponent[] sourceComponents;
+        bool hasMultipleDeliveryComponents;
 
         String linkedCombinerName;
         Junction linkedCombiner = null;
@@ -71,25 +71,25 @@ namespace AppriPhysics.Components
 
         public override void connectSelf(Dictionary<string, FlowComponent> components)
         {
-            for (int i = 0; i < sinkNames.Length; i++)
+            for (int i = 0; i < deliveryNames.Length; i++)
             {
-                FlowComponent sink = components[sinkNames[i]];
-                sink.setSource(this);
-                sinks[i] = sink;
-                if (sinks.Length > 1)
+                FlowComponent deliveryComponent = components[deliveryNames[i]];
+                deliveryComponent.setSource(this);
+                deliveryComponents[i] = deliveryComponent;
+                if (deliveryComponents.Length > 1)
                 {
-                    indexByName[sink.name] = i;
-                    setCombiningVolumeMap = new double[sinks.Length];
+                    indexByName[deliveryComponent.name] = i;
+                    setCombiningVolumeMap = new double[deliveryComponents.Length];
                 }
             }
             for (int i = 0; i < sourceNames.Length; i++)
             {
                 FlowComponent source = components[sourceNames[i]];
-                sources[i] = source;
-                if (sources.Length > 1)
+                sourceComponents[i] = source;
+                if (sourceComponents.Length > 1)
                 {
                     indexByName[source.name] = i;
-                    setCombiningVolumeMap = new double[sources.Length];
+                    setCombiningVolumeMap = new double[sourceComponents.Length];
                 }
             }
 
@@ -99,7 +99,7 @@ namespace AppriPhysics.Components
             }
 
             //TODO: Add code to validate the configuration, so that we are either 'one to many' or 'many to one'. Never many to many (and never 0 anywhere)
-            hasMultipleSinks = sinks.Length > 1;
+            hasMultipleDeliveryComponents = deliveryComponents.Length > 1;
         }
 
         public override void setSource(FlowComponent source)
@@ -135,7 +135,7 @@ namespace AppriPhysics.Components
             return sb.ToString();
         }
 
-        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
+        private FlowResponseData calculateSplittingFunctionality(FlowCalculationData baseData, double flowPercent, FlowComponent[] nodes, bool isDeliverySide, double pressurePercent)
         {
             FlowResponseData[] responses = new FlowResponseData[nodes.Length];
             bool foundNull = false;
@@ -148,8 +148,8 @@ namespace AppriPhysics.Components
                 {
                     if (responses[i] == null)
                     {
-                        if (isSink)
-                            responses[i] = nodes[i].getSinkPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]), pressurePercent);
+                        if (isDeliverySide)
+                            responses[i] = nodes[i].getDeliveryPossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]), pressurePercent);
                         else
                             responses[i] = nodes[i].getSourcePossibleValues(baseData, this, Math.Min(flowPercent, maxWeights[i]), pressurePercent);
                     }
@@ -272,12 +272,12 @@ namespace AppriPhysics.Components
             ret.flowPercent = percentToReturn;
             ret.flowVolume = percentToReturn * baseData.desiredFlowVolume;
             ret.backPressure = maxBackPressure;
-            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
+            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isDeliverySide);
 
             return ret;
         }
 
-        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
+        private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isDeliverySide, double pressurePercent)
         {
             if (!combinerMap.ContainsKey(baseData.flowDriver.name))
             {
@@ -310,10 +310,10 @@ namespace AppriPhysics.Components
 
             if (!combinerDownstreamValues.ContainsKey(baseData.flowDriver.name))
             {
-                if (isSink)
-                    combinerDownstreamValues[baseData.flowDriver.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
+                if (isDeliverySide)
+                    combinerDownstreamValues[baseData.flowDriver.name] = deliveryComponents[0].getDeliveryPossibleValues(baseData, this, percentSum, pressurePercent);
                 else
-                    combinerDownstreamValues[baseData.flowDriver.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
+                    combinerDownstreamValues[baseData.flowDriver.name] = sourceComponents[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
             }
 
             FlowResponseData ret = combinerDownstreamValues[baseData.flowDriver.name].clone();
@@ -329,15 +329,15 @@ namespace AppriPhysics.Components
                 flowPercentageSolutions[baseData.flowDriver.name] = new double[1];
             flowPercentageSolutions[baseData.flowDriver.name][0] = ret.flowPercent;
 
-            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
+            setPressures(baseData.pressure, ret.backPressure, pressurePercent, isDeliverySide);
 
             return ret;
         }
 
-        private void setPressures(double pumpPressure, double backPressure, double pressurePercent, bool isSink)
+        private void setPressures(double pumpPressure, double backPressure, double pressurePercent, bool isDeliverySide)
         {
-            if (isSink)
-                setPressuresForSinkSide(pumpPressure, backPressure, pressurePercent, pressurePercent);
+            if (isDeliverySide)
+                setPressuresForDeliverySide(pumpPressure, backPressure, pressurePercent, pressurePercent);
             else
                 setPressuresForSourceSide(pumpPressure, backPressure, pressurePercent, pressurePercent);
         }
@@ -383,17 +383,17 @@ namespace AppriPhysics.Components
             return preferredFlowPercent;
         }
 
-        private SettingResponseData setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
+        private SettingResponseData setFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isDeliverySide, bool lastTime)
         {
-            if(isSink)
+            if(isDeliverySide)
             {
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowDriver.name][i] * flowVolume, lastTime);
+                    nodes[i].setDeliveryValues(baseData, this, flowPercentageSolutions[baseData.flowDriver.name][i] * flowVolume, lastTime);
                 }
                 finalFlow = flowVolume;
 
-                currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                currentFluidTypeMap = baseData.fluidTypeMap;               //On the delivery side, the mixture comes from passed in arguments
                 inletTemperature = baseData.temperature;
                 outletTemperature = baseData.temperature;
                 
@@ -434,7 +434,7 @@ namespace AppriPhysics.Components
             }
         }
 
-        private SettingResponseData setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isSink, bool lastTime)
+        private SettingResponseData setCombiningFlowValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, FlowComponent[] nodes, bool isDeliverySide, bool lastTime)
         {
             int index = indexByName[caller.name];
             setCombiningVolumeMap[index] = flowVolume;   
@@ -450,14 +450,14 @@ namespace AppriPhysics.Components
 
             finalFlow = volumeSum;
 
-            if (isSink)
+            if (isDeliverySide)
             {
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    nodes[i].setSinkValues(baseData, this, volumeSum, lastTime);
+                    nodes[i].setDeliveryValues(baseData, this, volumeSum, lastTime);
                 }
 
-                currentFluidTypeMap = baseData.fluidTypeMap;               //On the sink side, the mixture comes from passed in arguments
+                currentFluidTypeMap = baseData.fluidTypeMap;               //On the delivery side, the mixture comes from passed in arguments
                 inletTemperature = baseData.temperature;
                 outletTemperature = baseData.temperature;
 
@@ -483,62 +483,62 @@ namespace AppriPhysics.Components
             }
         }
 
-        public override FlowResponseData getSinkPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
+        public override FlowResponseData getDeliveryPossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
-            if (hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, flowPercent, sinks, true, pressurePercent);
+            if (hasMultipleDeliveryComponents)
+                return calculateSplittingFunctionality(baseData, flowPercent, deliveryComponents, true, pressurePercent);
             else
-                return calculateCombiningFunctionality(baseData, caller, flowPercent, sources, true, pressurePercent);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, sourceComponents, true, pressurePercent);
         }
 
         public override FlowResponseData getSourcePossibleValues(FlowCalculationData baseData, FlowComponent caller, double flowPercent, double pressurePercent)
         {
-            if (!hasMultipleSinks)
-                return calculateSplittingFunctionality(baseData, flowPercent, sources, false, pressurePercent);
+            if (!hasMultipleDeliveryComponents)
+                return calculateSplittingFunctionality(baseData, flowPercent, sourceComponents, false, pressurePercent);
             else
-                return calculateCombiningFunctionality(baseData, caller, flowPercent, sinks, false, pressurePercent);
+                return calculateCombiningFunctionality(baseData, caller, flowPercent, deliveryComponents, false, pressurePercent);
         }
 
-        public override void setSinkValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
+        public override void setDeliveryValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
-            if (hasMultipleSinks)
-                setFlowValues(baseData, caller, flowVolume, sinks, true, lastTime);
+            if (hasMultipleDeliveryComponents)
+                setFlowValues(baseData, caller, flowVolume, deliveryComponents, true, lastTime);
             else
-                setCombiningFlowValues(baseData, caller, flowVolume, sinks, true, lastTime);
+                setCombiningFlowValues(baseData, caller, flowVolume, deliveryComponents, true, lastTime);
         }
 
         public override SettingResponseData setSourceValues(FlowCalculationData baseData, FlowComponent caller, double flowVolume, bool lastTime)
         {
-            if (!hasMultipleSinks)
-                return setFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
+            if (!hasMultipleDeliveryComponents)
+                return setFlowValues(baseData, caller, flowVolume, sourceComponents, false, lastTime);
             else
-                return setCombiningFlowValues(baseData, caller, flowVolume, sources, false, lastTime);
+                return setCombiningFlowValues(baseData, caller, flowVolume, sourceComponents, false, lastTime);
         }
 
-        public override void exploreSinkGraph(FlowCalculationData baseData, FlowComponent caller)
+        public override void exploreDeliveryGraph(FlowCalculationData baseData, FlowComponent caller)
         {
-            for (int i = 0; i < sinks.Length; i++)
+            for (int i = 0; i < deliveryComponents.Length; i++)
             {
-                sinks[i].exploreSinkGraph(baseData, this);
+                deliveryComponents[i].exploreDeliveryGraph(baseData, this);
             }
-            if (!hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
+            if (!hasMultipleDeliveryComponents)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
                 if (!indexesUsedByPump.ContainsKey(baseData.flowDriver.name))
-                    indexesUsedByPump[baseData.flowDriver.name] = new bool[sources.Length];
+                    indexesUsedByPump[baseData.flowDriver.name] = new bool[sourceComponents.Length];
                 indexesUsedByPump[baseData.flowDriver.name][indexByName[caller.name]] = true;
             }
         }
 
         public override void exploreSourceGraph(FlowCalculationData baseData, FlowComponent caller)
         {
-            for (int i = 0; i < sources.Length; i++)
+            for (int i = 0; i < sourceComponents.Length; i++)
             {
-                sources[i].exploreSourceGraph(baseData, this);
+                sourceComponents[i].exploreSourceGraph(baseData, this);
             }
-            if (hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
+            if (hasMultipleDeliveryComponents)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
                 if (!indexesUsedByPump.ContainsKey(baseData.flowDriver.name))
-                    indexesUsedByPump[baseData.flowDriver.name] = new bool[sinks.Length];
+                    indexesUsedByPump[baseData.flowDriver.name] = new bool[deliveryComponents.Length];
                 indexesUsedByPump[baseData.flowDriver.name][indexByName[caller.name]] = true;
             }
         }
