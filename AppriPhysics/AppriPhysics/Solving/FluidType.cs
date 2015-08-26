@@ -13,6 +13,13 @@ namespace AppriPhysics.Solving
         public static readonly FluidType AIR = new FluidType("Air", true);
         public static readonly FluidType DIESEL_OIL = new FluidType("Diesel Oil", false);
 
+        public static Dictionary<FluidType, double> createSingleVolumeMap(FluidType fluidType)
+        {
+            Dictionary<FluidType, double> ret = new Dictionary<FluidType, double>();
+            ret.Add(fluidType, 1.0);
+            return ret;
+        }
+
         public static IEnumerable<FluidType> Values
         {
             get

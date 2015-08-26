@@ -15,11 +15,11 @@ namespace AppriPhysics.Components
         }
 
         public String name;
-        protected double finalFlow;
-        protected double inletPressure;
-        protected double outletPressure;
-        protected double inletTemperature;
-        protected double outletTemperature;
+        public double finalFlow;
+        public double inletPressure;
+        public double outletPressure;
+        public double inletTemperature;
+        public double outletTemperature;
         
         protected Dictionary<FluidType, double> currentFluidTypeMap;
 
