@@ -8,15 +8,15 @@ namespace AppriPhysics.Solving
     {
 
         private Dictionary<String, FlowComponent> components = new Dictionary<String, FlowComponent>();
-        private Dictionary<String, Pump> pumps = new Dictionary<String, Pump>();                    //This could probably be a set, but we might want to find them...
+        private Dictionary<String, FlowDriver> flowDrivers = new Dictionary<String, FlowDriver>();                    //This could probably be a set, but we might want to find them...
         private Dictionary<String, double> angerMap = new Dictionary<String, double>();
 
         public void addComponent(FlowComponent comp)
         {
             components.Add(comp.name, comp);
-            if(comp is Pump)
+            if(comp is FlowDriver)
             {
-                pumps.Add(comp.name, (Pump)comp);
+                flowDrivers.Add(comp.name, (FlowDriver)comp);
             }
         }
 
@@ -31,13 +31,13 @@ namespace AppriPhysics.Solving
             {
                 iter.connectSelf(components);
             }
-            foreach(Pump iter in pumps.Values)
+            foreach(FlowDriver iter in flowDrivers.Values)
             {
                 FlowCalculationData baseData = new FlowCalculationData(iter, angerMap, 0);
-                baseData.flowPusher = iter;
+                baseData.flowDriver = iter;
                 iter.exploreSinkGraph(baseData, null);
                 iter.exploreSourceGraph(baseData, null);
-                flowPusherModifiers[iter.name] = new FlowPusherModifier();
+                flowDriverModifiers[iter.name] = new FlowDriverModifier();
             }
         }
 
@@ -52,7 +52,7 @@ namespace AppriPhysics.Solving
 
                 bool possibleSolve = true;
                 attempt++;
-                foreach(Pump p in pumps.Values)
+                foreach(FlowDriver p in flowDrivers.Values)
                 {
                     if (!attemptSolve(p, attempt))
                         possibleSolve = false;
@@ -80,30 +80,30 @@ namespace AppriPhysics.Solving
             while (!allApplied)
             {
                 allApplied = true;
-                foreach (Pump p in pumps.Values)
+                foreach (FlowDriver p in flowDrivers.Values)
                 {
-                    if (!p.applySolution(new FlowCalculationData(p, angerMap, 0), flowPusherModifiers[p.name], lastTime))
+                    if (!p.applySolution(new FlowCalculationData(p, angerMap, 0), flowDriverModifiers[p.name], lastTime))
                         allApplied = false;
                 }
             }
         }
 
-        private bool attemptSolve(Pump p, int attempt)
+        private bool attemptSolve(FlowDriver p, int attempt)
         {
-            double flowModifier = flowPusherModifiers[p.name].flowPercent;
+            double flowModifier = flowDriverModifiers[p.name].flowPercent;
 
             FlowCalculationData baseData = new FlowCalculationData(p, angerMap, attempt);
-            FlowResponseData sourceAbility = p.getPumpSourcePossibleValues(baseData, flowPusherModifiers[p.name]);
+            FlowResponseData sourceAbility = p.getFlowDriverSourcePossibleValues(baseData, flowDriverModifiers[p.name]);
             baseData.fluidTypeMap = sourceAbility.fluidTypeMap;             //Pass the mixture stuff from source to sink
-            FlowResponseData sinkAbility = p.getPumpSinkPossibleValues(baseData, flowPusherModifiers[p.name]);
+            FlowResponseData sinkAbility = p.getFlowDriverSinkPossibleValues(baseData, flowDriverModifiers[p.name]);
 
-            if (flowPusherModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
+            if (flowDriverModifiers[p.name].updateStateRequiresNewSolution(sourceAbility, sinkAbility))
                 return false;
 
             return true;
         }
         
-        Dictionary<String, FlowPusherModifier> flowPusherModifiers = new Dictionary<string, FlowPusherModifier>();
+        Dictionary<String, FlowDriverModifier> flowDriverModifiers = new Dictionary<string, FlowDriverModifier>();
 
         private void resetPartialState()
         {
@@ -115,7 +115,7 @@ namespace AppriPhysics.Solving
 
         private void clearFullState()
         {
-            foreach (FlowPusherModifier iter in flowPusherModifiers.Values)
+            foreach (FlowDriverModifier iter in flowDriverModifiers.Values)
                 iter.clearState();
             angerMap.Clear();
         }

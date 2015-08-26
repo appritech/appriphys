@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AppriPhysics.Solving;
 using AppriPhysics.Components;
-using AppriPhysics.Components.Pumps;
+using AppriPhysics.Components.FlowDrivers;
 using System.Collections.Generic;
 
 namespace UnitTests
@@ -23,7 +23,7 @@ namespace UnitTests
             gs.addComponent(t1);
             FlowLine v1 = new FlowLine("V1", "P1");
             gs.addComponent(v1);
-            Pump p1 = new Pump("P1", 100.0, 4.0, "V2");
+            FlowDriver p1 = new FlowDriver("P1", 100.0, 4.0, "V2");
             gs.addComponent(p1);
             FlowLine v2 = new FlowLine("V2", "T2");
             gs.addComponent(v2);
@@ -31,7 +31,7 @@ namespace UnitTests
             gs.addComponent(t2);
 
 
-            PressureDifferentialPump p2 = new PressureDifferentialPump("P2", 100.0, 0.0, "V3", 1.0, 2.0);
+            PressureDifferentialFlowDriver p2 = new PressureDifferentialFlowDriver("P2", 100.0, 0.0, "V3", 1.0, 2.0);
             gs.addComponent(p2);
             FlowLine v3 = new FlowLine("V3", "T3");
             v3.setFlowAllowedPercent(0.0);

@@ -168,8 +168,8 @@ namespace AppriPhysics.Components
                 return null;                //We weren't able to get everything, and this is probably because there is another splitter up stream that will retry us again.
             }
 
-            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
-                flowPercentageSolutions[baseData.flowPusher.name] = new double[nodes.Length];
+            if (!flowPercentageSolutions.ContainsKey(baseData.flowDriver.name))
+                flowPercentageSolutions[baseData.flowDriver.name] = new double[nodes.Length];
             
             //If we get here, then we have all the info we should need to solve ourselves.
 
@@ -188,8 +188,8 @@ namespace AppriPhysics.Components
                 double[] flowPercentToCombiner;
                 //NOTE: Both solutions with both divisors gave the same answer, and I found the bug elsewhere...
                 //TODO: Determing what divisor we actually want to use.
-                if (linkedCombiner.combinerMap.ContainsKey(baseData.flowPusher.name))
-                    flowPercentToCombiner = linkedCombiner.combinerMap[baseData.flowPusher.name];
+                if (linkedCombiner.combinerMap.ContainsKey(baseData.flowDriver.name))
+                    flowPercentToCombiner = linkedCombiner.combinerMap[baseData.flowDriver.name];
                 else
                 {
                     flowPercentToCombiner = new double[nodes.Length];
@@ -248,7 +248,7 @@ namespace AppriPhysics.Components
 
                     trueFlowPercent = Math.Min(trueFlowPercent, maxWeights[i]);            //Probably don't need this one, since the one right below is better.
                     trueFlowPercent = Math.Min(trueFlowPercent, maxFlowPercent[i]);
-                    flowPercentageSolutions[baseData.flowPusher.name][i] = trueFlowPercent;
+                    flowPercentageSolutions[baseData.flowDriver.name][i] = trueFlowPercent;
                     percentToReturn += trueFlowPercent;
                 }
             }
@@ -257,7 +257,7 @@ namespace AppriPhysics.Components
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     double trueFlowPercent = preferredFlowPercent[i];           //It all works out with preferred values.
-                    flowPercentageSolutions[baseData.flowPusher.name][i] = trueFlowPercent;
+                    flowPercentageSolutions[baseData.flowDriver.name][i] = trueFlowPercent;
                 }
             }
 
@@ -265,7 +265,7 @@ namespace AppriPhysics.Components
             if (percentToReturn != 0.0)
             {
                 for (int i = 0; i < nodes.Length; i++)
-                    flowPercentageSolutions[baseData.flowPusher.name][i] /= percentToReturn;
+                    flowPercentageSolutions[baseData.flowDriver.name][i] /= percentToReturn;
             }
             
             FlowResponseData ret = new FlowResponseData();
@@ -279,20 +279,20 @@ namespace AppriPhysics.Components
 
         private FlowResponseData calculateCombiningFunctionality(FlowCalculationData baseData, FlowComponent caller, double flowPercent, FlowComponent[] nodes, bool isSink, double pressurePercent)
         {
-            if (!combinerMap.ContainsKey(baseData.flowPusher.name))
+            if (!combinerMap.ContainsKey(baseData.flowDriver.name))
             {
                 double[] toAdd = new double[indexByName.Count];
                 for (int i = 0; i < indexByName.Count; i++)
                 {
-                    if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name) || indexesUsedByPump[baseData.flowPusher.name][i])
+                    if (!indexesUsedByPump.ContainsKey(baseData.flowDriver.name) || indexesUsedByPump[baseData.flowDriver.name][i])
                         toAdd[i] = -1.0;                            //Initialize with all negative numbers, and wait until they are not negative to know when we are done.
                     else
                         toAdd[i] = 0.0;                             //Initialize to 0 if this pump will never get this number
                 }
-                combinerMap[baseData.flowPusher.name] = toAdd;
+                combinerMap[baseData.flowDriver.name] = toAdd;
             }
 
-            double[] percentMap = combinerMap[baseData.flowPusher.name];
+            double[] percentMap = combinerMap[baseData.flowDriver.name];
             int index = indexByName[caller.name];
             percentMap[index] = flowPercent;
 
@@ -308,15 +308,15 @@ namespace AppriPhysics.Components
             if (percentSum > 1.0)
                 percentSum = 1.0;
 
-            if (!combinerDownstreamValues.ContainsKey(baseData.flowPusher.name))
+            if (!combinerDownstreamValues.ContainsKey(baseData.flowDriver.name))
             {
                 if (isSink)
-                    combinerDownstreamValues[baseData.flowPusher.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
+                    combinerDownstreamValues[baseData.flowDriver.name] = sinks[0].getSinkPossibleValues(baseData, this, percentSum, pressurePercent);
                 else
-                    combinerDownstreamValues[baseData.flowPusher.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
+                    combinerDownstreamValues[baseData.flowDriver.name] = sources[0].getSourcePossibleValues(baseData, this, percentSum, pressurePercent);
             }
 
-            FlowResponseData ret = combinerDownstreamValues[baseData.flowPusher.name].clone();
+            FlowResponseData ret = combinerDownstreamValues[baseData.flowDriver.name].clone();
             lastCombinePercent = ret.flowPercent;
 
             if (percentSum != 0.0)
@@ -325,9 +325,9 @@ namespace AppriPhysics.Components
                 ret.flowVolume *= (percentMap[index] / percentSum);
             }
 
-            if (!flowPercentageSolutions.ContainsKey(baseData.flowPusher.name))
-                flowPercentageSolutions[baseData.flowPusher.name] = new double[1];
-            flowPercentageSolutions[baseData.flowPusher.name][0] = ret.flowPercent;
+            if (!flowPercentageSolutions.ContainsKey(baseData.flowDriver.name))
+                flowPercentageSolutions[baseData.flowDriver.name] = new double[1];
+            flowPercentageSolutions[baseData.flowDriver.name][0] = ret.flowPercent;
 
             setPressures(baseData.pressure, ret.backPressure, pressurePercent, isSink);
 
@@ -389,7 +389,7 @@ namespace AppriPhysics.Components
             {
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume, lastTime);
+                    nodes[i].setSinkValues(baseData, this, flowPercentageSolutions[baseData.flowDriver.name][i] * flowVolume, lastTime);
                 }
                 finalFlow = flowVolume;
 
@@ -409,7 +409,7 @@ namespace AppriPhysics.Components
                     hasNull = false;
                     for (int i = 0; i < nodes.Length; i++)
                     {
-                        volumes[i] = flowPercentageSolutions[baseData.flowPusher.name][i] * flowVolume;
+                        volumes[i] = flowPercentageSolutions[baseData.flowDriver.name][i] * flowVolume;
                         if(responses[i] == null)
                             responses[i] = nodes[i].setSourceValues(baseData, this, volumes[i], lastTime);
                         if (responses[i] == null)
@@ -523,9 +523,9 @@ namespace AppriPhysics.Components
             }
             if (!hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
-                if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
-                    indexesUsedByPump[baseData.flowPusher.name] = new bool[sources.Length];
-                indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
+                if (!indexesUsedByPump.ContainsKey(baseData.flowDriver.name))
+                    indexesUsedByPump[baseData.flowDriver.name] = new bool[sources.Length];
+                indexesUsedByPump[baseData.flowDriver.name][indexByName[caller.name]] = true;
             }
         }
 
@@ -537,9 +537,9 @@ namespace AppriPhysics.Components
             }
             if (hasMultipleSinks)           //Do the following if we are combining, so we know which combining imputs actually apply to given pump
             {
-                if (!indexesUsedByPump.ContainsKey(baseData.flowPusher.name))
-                    indexesUsedByPump[baseData.flowPusher.name] = new bool[sinks.Length];
-                indexesUsedByPump[baseData.flowPusher.name][indexByName[caller.name]] = true;
+                if (!indexesUsedByPump.ContainsKey(baseData.flowDriver.name))
+                    indexesUsedByPump[baseData.flowDriver.name] = new bool[sinks.Length];
+                indexesUsedByPump[baseData.flowDriver.name][indexByName[caller.name]] = true;
             }
         }
     }

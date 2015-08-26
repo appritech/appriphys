@@ -26,7 +26,7 @@ namespace UnitTests
             gs.addComponent(t1);
             FlowLine v1 = new FlowLine("V1", "P1");
             gs.addComponent(v1);
-            Pump p1 = new Pump("P1", 200.0, 3.2, "S1");
+            FlowDriver p1 = new FlowDriver("P1", 200.0, 3.2, "S1");
             gs.addComponent(p1);
             Junction s1 = new Junction("S1", new string[] { "V2", "V3" }, new string[] { "P1" }, "", new double[] { 0.5, 0.5 }, new double[] { 0.6, 1.0 });
             gs.addComponent(s1);

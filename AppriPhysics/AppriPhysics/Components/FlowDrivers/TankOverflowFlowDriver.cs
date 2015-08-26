@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AppriPhysics.Solving;
 
-namespace AppriPhysics.Components.Pumps
+namespace AppriPhysics.Components.FlowDrivers
 {
-    public class TankOverflowPump : Pump
+    public class TankOverflowFlowDriver : FlowDriver
     {
-        public TankOverflowPump(String name, double mcrRating, double mcrPressure, String sinkName, double minTankPercent, double maxTankPercent) : base(name, mcrRating, mcrPressure, sinkName)
+        public TankOverflowFlowDriver(String name, double mcrRating, double mcrPressure, String sinkName, double minTankPercent, double maxTankPercent) : base(name, mcrRating, mcrPressure, sinkName)
         {
             this.minTankPercent = minTankPercent;
             this.maxTankPercent = maxTankPercent;
@@ -29,14 +29,14 @@ namespace AppriPhysics.Components.Pumps
                 throw new InvalidCastException("TankOverflowPump must have a Tank as its input source");
         }
 
-        public override FlowResponseData getPumpSinkPossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public override FlowResponseData getFlowDriverSinkPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
-            FlowResponseData normalResponse = base.getPumpSinkPossibleValues(baseData, modifier);
+            FlowResponseData normalResponse = base.getFlowDriverSinkPossibleValues(baseData, modifier);
             //I don't think that we actually need to do anything special on the sink side of things.
             return normalResponse;
         }
 
-        public override FlowResponseData getPumpSourcePossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public override FlowResponseData getFlowDriverSourcePossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
             if(sourceTank.percentFilled > minTankPercent)
             {
@@ -45,7 +45,7 @@ namespace AppriPhysics.Components.Pumps
                 {
                     pumpingPercent = (sourceTank.percentFilled - minTankPercent) / (maxTankPercent - minTankPercent);
                 }
-                FlowResponseData normalResponse = base.getPumpSourcePossibleValues(baseData, modifier);
+                FlowResponseData normalResponse = base.getFlowDriverSourcePossibleValues(baseData, modifier);
                 return normalResponse;
             }
             else

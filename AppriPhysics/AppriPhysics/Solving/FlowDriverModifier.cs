@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace AppriPhysics.Solving
 {
-    public class FlowPusherModifier
+    public class FlowDriverModifier
     {
-        public FlowPusherModifier()
+        public FlowDriverModifier()
         {
             clearState();
         }

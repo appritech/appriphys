@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AppriPhysics.Solving;
 
-namespace AppriPhysics.Components.Pumps
+namespace AppriPhysics.Components.FlowDrivers
 {
-    public class PressureDifferentialPump : Pump
+    public class PressureDifferentialFlowDriver : FlowDriver
     {
-        public PressureDifferentialPump(String name, double mcrRating, double mcrPressure, String sinkName, double minDeltaP, double maxDeltaP) : base(name, mcrRating, mcrPressure, sinkName)
+        public PressureDifferentialFlowDriver(String name, double mcrRating, double mcrPressure, String sinkName, double minDeltaP, double maxDeltaP) : base(name, mcrRating, mcrPressure, sinkName)
         {
             this.minDeltaP = minDeltaP;
             this.maxDeltaP = maxDeltaP;
@@ -25,11 +25,11 @@ namespace AppriPhysics.Components.Pumps
             lastSourcePossibleValue = null;
         }
 
-        public override FlowResponseData getPumpSinkPossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public override FlowResponseData getFlowDriverSinkPossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
             pumpingPercent = lastSourcePossibleValue.flowPercent;
             mcrPressure = lastSourcePossibleValue.backPressure;
-            FlowResponseData normalResponse = base.getPumpSinkPossibleValues(baseData, modifier);
+            FlowResponseData normalResponse = base.getFlowDriverSinkPossibleValues(baseData, modifier);
 
             double deltaP = lastSourcePossibleValue.backPressure - normalResponse.backPressure;
             if (deltaP < minDeltaP)
@@ -51,10 +51,10 @@ namespace AppriPhysics.Components.Pumps
             return normalResponse;
         }
 
-        public override FlowResponseData getPumpSourcePossibleValues(FlowCalculationData baseData, FlowPusherModifier modifier)
+        public override FlowResponseData getFlowDriverSourcePossibleValues(FlowCalculationData baseData, FlowDriverModifier modifier)
         {
             pumpingPercent = 1.0;
-            FlowResponseData normalResponse = base.getPumpSourcePossibleValues(baseData, modifier);
+            FlowResponseData normalResponse = base.getFlowDriverSourcePossibleValues(baseData, modifier);
             lastSourcePossibleValue = normalResponse;
             return normalResponse;
         }

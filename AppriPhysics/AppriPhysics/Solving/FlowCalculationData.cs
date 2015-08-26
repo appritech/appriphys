@@ -9,14 +9,14 @@ namespace AppriPhysics.Solving
 {
     public class FlowCalculationData
     {
-        public FlowCalculationData(FlowComponent flowPusher, Dictionary<String, double> angerMap, int attempt)
+        public FlowCalculationData(FlowComponent flowDriver, Dictionary<String, double> angerMap, int attempt)
         {
-            this.flowPusher = flowPusher;
+            this.flowDriver = flowDriver;
             this.angerMap = angerMap;
             this.attempt = attempt;
         }
 
-        public FlowComponent flowPusher;
+        public FlowComponent flowDriver;
         public int attempt;
         public Dictionary<String, double> angerMap;
 

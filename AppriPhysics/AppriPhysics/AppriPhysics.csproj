@@ -44,15 +44,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\Pumps\PressureDifferentialPump.cs" />
-    <Compile Include="Components\Pumps\TankOverflowPump.cs" />
+    <Compile Include="Components\FlowDrivers\PressureDifferentialFlowDriver.cs" />
+    <Compile Include="Components\FlowDrivers\TankOverflowFlowDriver.cs" />
     <Compile Include="Solving\FlowCalculationData.cs" />
     <Compile Include="Components\FlowComponent.cs" />
     <Compile Include="Components\FlowLine.cs" />
-    <Compile Include="Solving\FlowPusherModifier.cs" />
+    <Compile Include="Solving\FlowDriverModifier.cs" />
     <Compile Include="Solving\FlowResponseData.cs" />
     <Compile Include="Components\Junction.cs" />
-    <Compile Include="Components\Pump.cs" />
+    <Compile Include="Components\FlowDriver.cs" />
     <Compile Include="Components\Tank.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

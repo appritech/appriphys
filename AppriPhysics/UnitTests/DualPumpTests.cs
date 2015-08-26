@@ -28,9 +28,9 @@ namespace UnitTests
             gs.addComponent(v1);
             FlowLine v2 = new FlowLine("V2", "P2");
             gs.addComponent(v2);
-            Pump p1 = new Pump("P1", 100.0, 3.2, "V3");
+            FlowDriver p1 = new FlowDriver("P1", 100.0, 3.2, "V3");
             gs.addComponent(p1);
-            Pump p2 = new Pump("P2", 100.0, 3.2, "V4");
+            FlowDriver p2 = new FlowDriver("P2", 100.0, 3.2, "V4");
             gs.addComponent(p2);
             FlowLine v3 = new FlowLine("V3", "C2");
             gs.addComponent(v3);
