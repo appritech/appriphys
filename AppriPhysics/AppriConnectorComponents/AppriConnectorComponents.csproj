@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D6BD1B72-E649-4801-B10A-A781732CF736}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AppriConnectorComponents</RootNamespace>
+    <AssemblyName>AppriConnectorComponents</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FlowModel\AppriFlowLineWrapper.cs" />
+    <Compile Include="FlowModel\AppriGraphSolverWrapper.cs" />
+    <Compile Include="FlowModel\AppriPumpWrapper.cs" />
+    <Compile Include="FlowModel\AppriTankWrapper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AppriPhysics\AppriPhysics.csproj">
+      <Project>{27d973b9-cc7b-41bb-befd-0cb5e51d2994}</Project>
+      <Name>AppriPhysics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\NoVB\Code\EngineSim\Base_Components\Base_Components.csproj">
+      <Project>{bbdd95f0-e407-4753-b783-b8514faef941}</Project>
+      <Name>Base_Components</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\NoVB\Code\EngineSim\Core Component Base\Core Components.csproj">
+      <Project>{c9c4ba2f-8e42-4277-bd42-11796e0c16e2}</Project>
+      <Name>Core Components</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\NoVB\Code\EngineSim\EngineFormControls\EngineFormControls.csproj">
+      <Project>{04fd2501-6c59-4214-9f2b-b9f8176490c7}</Project>
+      <Name>EngineFormControls</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\NoVB\Code\EngineSim\Interfaces\Interfaces.csproj">
+      <Project>{46146313-f23d-4e76-b181-2974078cce7f}</Project>
+      <Name>Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
